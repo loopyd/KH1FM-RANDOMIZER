@@ -4,16 +4,6 @@ from typing import Dict, List
 from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
 
 
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
-
-
-def get_seed_json_data(seed_json_file: str | None = None) -> Dict:
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
-    return seed_json_data
-
-
 def get_starting_accessory_equipped_defintions() -> List[Dict]:
     party_member_starting_accessories_equipped_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Party Member Starting Accessories Equipped.csv")
     evdl_locations = read_csv(file_path=party_member_starting_accessories_equipped_csv_path)
@@ -38,12 +28,12 @@ def write_evdl_bytes_to_file(file_path: Path, evdl_bytes: bytearray) -> None:
 
 def write_starting_accessories_equipped(seed_json_file: Path | None = None, settings_file: Path | None = None):
     kh1_data_path = root_path().joinpath("Working")
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     if settings_data["randomize_party_member_starting_accessories"]:
         evdl_location = kh1_data_path.joinpath("remastered", "dh01.ard", "UK_dh01c.ev")
         evdl_bytes = get_evdl_bytes(evdl_location)
         starting_accessory_equipped_definitions = get_starting_accessory_equipped_defintions()
-        seed_json_data = get_seed_json_data(seed_json_file)
+        seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
         starting_accessory_location_id_character_map = {
             "2656800": 1,
             "2656801": 1,
@@ -81,12 +71,12 @@ def write_starting_accessories_equipped(seed_json_file: Path | None = None, sett
 
 def write_starting_accessories_stock(seed_json_file: Path | None = None, settings_file: Path | None = None):
     kh1_data_path = root_path().joinpath("Working")
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     if settings_data["randomize_party_member_starting_accessories"]:
         evdl_location = kh1_data_path.joinpath("remastered", "dh01.ard", "UK_dh01c.ev")
         evdl_bytes = get_evdl_bytes(evdl_location)
         starting_accessory_stock_definitions = get_starting_accessory_stock_defintions()
-        seed_json_data = get_seed_json_data(seed_json_file)
+        seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
         starting_accessory_location_ids = [
             "2656800",
             "2656801",

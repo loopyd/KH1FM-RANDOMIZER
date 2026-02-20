@@ -1,14 +1,7 @@
 import yaml
 from datetime import datetime
-from typing import Dict
-from pathlib import Path
 
 from helpers import root_path, read_json, list_files_recursive, remove_path, write_plaintext, create_zip
-
-
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
 
 
 def create_mod_yaml(seed: int, slot_name: str) -> None:
@@ -38,7 +31,7 @@ def create_mod_yaml(seed: int, slot_name: str) -> None:
 
 
 def write_mod_zip(settings_file=None):
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     now = datetime.now()
     seed = settings_data["seed"]
     slot_name = settings_data.get("slot_name", "")

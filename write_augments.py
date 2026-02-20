@@ -2,17 +2,7 @@ from pathlib import Path
 
 from definitions import augment_strings
 from write_item_descriptions import replace_specific_item_description
-from helpers import root_path, read_json, read_plaintext, write_plaintext
-
-
-def get_seed_json_data(seed_json_file: Path | None = None):
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
-    return seed_json_data
-
-
-def get_settings_data(settings_file = None):
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
+from helpers import read_json, root_path, read_plaintext, write_plaintext
 
 
 def get_augments_lua_str() -> str:
@@ -24,11 +14,6 @@ def get_augments_lua_str() -> str:
 def output_augments_lua_file(augments_lua_string: str) -> None:
     rando_augment_lua_path = root_path().joinpath("Working", "scripts", "1fmRandoHandleAugments.lua")
     write_plaintext(file_path=rando_augment_lua_path, data=augments_lua_string, overwrite=True, create_parents=True)
-
-
-def get_spell_mp_costs_data(spell_mp_costs_json_file: Path | None = None):
-    spell_mp_costs_data = read_json(file_path=spell_mp_costs_json_file, ask_prompt=True)
-    return spell_mp_costs_data
 
 
 def update_augment_lua(augments_lua_string: str, seed_json_data: dict) -> str:
@@ -96,15 +81,15 @@ def get_new_spell_effectiveness(spell_mp_costs_data):
 
 
 def write_augments(seed_json_file: Path | None = None, settings_file: Path | None = None, mp_cost_file: Path | None = None):
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data.get("accessory_augments"):
         augments_lua_string = get_augments_lua_str()
         if settings_data.get("randomize_spell_mp_costs", "off") != "off":
-            mp_costs = get_spell_mp_costs_data(mp_cost_file)
+            mp_costs = read_json(file_path=mp_cost_file, ask_prompt=False)
             augments_lua_string = update_augment_mp_costs(augments_lua_string, mp_costs)
             if settings_data.get("scaling_spell_potency"):
                 augments_lua_string = update_augment_spell_effectiveness(augments_lua_string, mp_costs)
-        seed_json_data = get_seed_json_data(seed_json_file)
+        seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
         augments_lua_string = update_augment_lua(augments_lua_string, seed_json_data)
         output_augments_lua_file(augments_lua_string)
         update_accessory_descriptions(seed_json_data)

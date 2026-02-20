@@ -79,7 +79,7 @@ def replace_specific_item_description(item_num: int, description: str) -> None:
     output_item_descriptions(bytes(new_item_description_bytes))
 
 
-def write_item_descriptions():
+def write_item_descriptions() -> None:
     kh1_data_path = root_path().joinpath("Working")
     item_description_bytes = get_item_description_bytes(kh1_data_path)
     item_description_string = build_item_description_string(item_description_bytes)

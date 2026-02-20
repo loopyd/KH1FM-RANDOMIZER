@@ -18,11 +18,6 @@ def get_enemy_categories() -> List[Dict]:
     return enemy_categories
 
 
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
-
-
 def choose_random_enemies(map_enemies: List[Dict], enemy_categories: Dict, seed) -> Dict:
     random.seed(seed)
     categories = ["Easy", "Medium", "Hard"]
@@ -64,7 +59,8 @@ def get_enemy_rando_log(changes: Dict) -> str:
 
 
 def write_enemy_rando_log(kh1_data_path: Path, enemy_rando_log: str) -> None:
-    write_plaintext(file_path=kh1_data_path.joinpath("enemy_rando_log.txt"), data=enemy_rando_log, overwrite=True, create_parents=True)
+    enemy_rando_path = kh1_data_path.joinpath("enemy_rando_log.txt")
+    write_plaintext(file_path=enemy_rando_path, data=enemy_rando_log, overwrite=True, create_parents=True)
 
 
 def change_ard_bytes(kh1_data_path: Path, changes: Dict) -> None:
@@ -80,17 +76,18 @@ def change_ard_bytes(kh1_data_path: Path, changes: Dict) -> None:
                 print_str = print_str + hex(byte) + " "
             print(print_str)
             
-            bytes = read_bytes(kh1_data_path.joinpath(file))
+            kh1_data_file_path = kh1_data_path.joinpath(file)
+            bytes = read_bytes(kh1_data_file_path)
             i = 0
             for changed_byte in change_byte_array:
                 bytes[offset + i] = change_byte_array[i]
                 i = i + 1
-            write_bytes(kh1_data_path.joinpath(file), bytes, overwrite=True, create_parents=True)
+            write_bytes(kh1_data_file_path, bytes, overwrite=True, create_parents=True)
 
 
 def write_enemies(settings_file: Path | None = None) -> None:
     kh1_data_path = root_path().joinpath("Working")
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if "randomize_enemies" in settings_data.keys():
         if settings_data["randomize_enemies"] != "off":
             map_enemies = get_map_enemies()

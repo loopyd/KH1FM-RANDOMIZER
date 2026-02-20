@@ -1,5 +1,4 @@
 import sys
-from typing import Dict
 
 from gooey import Gooey,GooeyParser
 import shutil
@@ -7,23 +6,13 @@ import subprocess
 import re
 from pathlib import Path
 
-from helpers import root_path, read_json, write_json, copy_and_replace, clear_folder
+from helpers import root_path, copy_and_replace, clear_folder
+from config import read_presets, write_presets
 
 # Handle Splash Screen
 if getattr(sys, 'frozen', False):
     import pyi_splash
     pyi_splash.close()
-
-
-def read_presets() -> Dict:
-    presets_path = root_path().joinpath("seed_generator_presets.json")
-    data = read_json(presets_path)
-    return data
-
-
-def write_presets(args):
-    presets_path = root_path().joinpath("seed_generator_presets.json")
-    write_json(presets_path, vars(args), overwrite=True)
 
 
 def handle_replacing_ap_world(archipelago_directory: Path, replace_ap_world: bool) -> None:
@@ -83,7 +72,7 @@ def move_generated_seed_zip_to_files(archipelago_directory: Path, generated_seed
         header_bg_color="#5E5540")
 
 def main():
-    presets = read_presets()
+    presets = read_presets("seed")
     parser = GooeyParser()
     parser.add_argument("archipelago_directory",
         widget = "DirChooser",
@@ -126,8 +115,7 @@ def main():
     if clean_players_folder not in ["Yes", "No"]:
         ValueError("Error: clean_players_folder must be either \"Yes\" or \"No\".")
         
-    write_presets(args)
-    
+    write_presets("seed", args)
     handle_replacing_ap_world(archipelago_directory, replace_ap_world == "Yes")
     move_settings_file_to_players_folder(archipelago_directory, settings_file, clean_players_folder == "Yes")
     generated_seed_zip = generate_ap_game(archipelago_directory)

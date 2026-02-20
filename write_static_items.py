@@ -9,16 +9,6 @@ def get_evdl_locations() -> List[Dict]:
     return evdl_locations
 
 
-def get_seed_json_data(seed_json_file: Path | None = None) -> Dict:
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
-    return seed_json_data
-
-
-def get_evdl_bytes(file_path: Path) -> bytearray:
-    evdl_bytes = read_bytes(file_path=file_path)
-    return evdl_bytes
-
-
 def sort_evdl_location_data(evdl_locations: List[Dict]) -> Dict[str, List[Dict]]:
     sorted_evdl_location_data = {}
     for evdl_location in evdl_locations:
@@ -41,7 +31,7 @@ def write_updated_evdl_files(sorted_evdl_location_data: Dict[str, List[Dict]], s
             file_path = root_path().joinpath("Corrected EVDLs", file)
         else:
             file_path = kh1_data_path.joinpath(file)
-        evdl_bytes = get_evdl_bytes(file_path)
+        evdl_bytes = read_bytes(file_path, ask_prompt=False)
         for replacement in sorted_evdl_location_data[file]:
             print(replacement)
             print("Updating " + replacement["AP Location ID"] + " at offset " + replacement["Offset"])
@@ -61,7 +51,7 @@ def write_updated_evdl_files(sorted_evdl_location_data: Dict[str, List[Dict]], s
 
 def write_static_items(seed_json_file: Path | None = None) -> None:
     kh1_data_path = root_path().joinpath("Working")
-    seed_json_data = get_seed_json_data(seed_json_file)
+    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
     evdl_locations = get_evdl_locations()
     sorted_evdl_location_data = sort_evdl_location_data(evdl_locations)
     write_updated_evdl_files(sorted_evdl_location_data, seed_json_data, kh1_data_path)

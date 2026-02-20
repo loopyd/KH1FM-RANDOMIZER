@@ -6,11 +6,6 @@ from write_item_descriptions import replace_specific_item_description
 from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
 
 
-def get_seed_keyblade_stats_data(seed_json_file: Path | None = None) -> List[Dict]:
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
-    return seed_json_data
-
-
 def get_battle_table(kh1_data_path: Path) -> bytearray:
     battle_table_path = kh1_data_path.joinpath("btltbl.bin")
     battle_data = read_bytes(battle_table_path)
@@ -85,7 +80,7 @@ def output_battle_table(battle_table_bytes: bytearray) -> None:
 
 def write_keyblade_stats(seed_json_file = None):
     kh1_data_path = root_path().joinpath("Working")
-    keyblade_stats_data = get_seed_keyblade_stats_data(seed_json_file)
+    keyblade_stats_data = read_json(file_path=seed_json_file, ask_prompt=False)
     battle_table_bytes = get_battle_table(kh1_data_path)
     weapon_definitions = get_weapon_stat_definitions()
     battle_table_bytes = write_weapon_stats(battle_table_bytes, weapon_definitions, keyblade_stats_data)

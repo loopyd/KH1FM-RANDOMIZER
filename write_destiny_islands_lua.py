@@ -1,12 +1,7 @@
-from typing import Dict
 from pathlib import Path
 
-from helpers import read_plaintext, root_path, read_json, write_plaintext
+from helpers import read_plaintext, root_path, write_plaintext, read_json
 
-
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
 
 
 def get_destiny_islands_lua_str() -> str:
@@ -27,7 +22,7 @@ def update_destiny_islands_lua_str(destiny_islands_lua_str: str, day_2_materials
 
 
 def write_destiny_islands_lua(settings_file: Path | None = None) -> None:
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data["destiny_islands"]:
         day_2_materials = settings_data["day_2_materials"]
         homecoming_materials = settings_data["homecoming_materials"]

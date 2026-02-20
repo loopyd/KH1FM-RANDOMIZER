@@ -3,7 +3,9 @@ from gooey import Gooey,GooeyParser
 
 from write_mod import write_mod
 from pathlib import Path
-from helpers import root_path, get_nested_zip, extract_zip, read_json, write_json
+
+from helpers import root_path, get_nested_zip, extract_zip
+from config import read_presets, write_presets
 
 # Handle Splash Screen
 if getattr(sys, 'frozen', False):
@@ -15,7 +17,7 @@ if getattr(sys, 'frozen', False):
     header_bg_color="#554e3b")
 
 def main():
-    presets = read_json(root_path().joinpath("mod_generator_presets.json"))
+    presets = read_presets("mod")
     
     parser = GooeyParser()
     parser.add_argument("ap_zip_file",
@@ -39,10 +41,7 @@ def main():
     if kh1_data_path is None or not Path(kh1_data_path).is_directory() or not Path(kh1_data_path).exists():
         FileNotFoundError(f"Error: {kh1_data_path} is not a valid directory, or does not exist.")
     
-    write_json(root_path().joinpath("mod_generator_presets.json"), {
-        "ap_zip_file": str(ap_zip_file),
-        "kh1_data_path": str(kh1_data_path)
-    })
+    write_presets("mod", args)
 
     nested_zip: Path = get_nested_zip(ap_zip_file)
     if nested_zip:

@@ -4,10 +4,6 @@ from pathlib import Path
 from helpers import root_path, read_json, read_plaintext, write_plaintext
 
 
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
-
 def get_lucky_emblems_template_lua() -> str:
     rando_lucky_emblems_lua_path = root_path().joinpath("Template Luas", "1fmRandoHandleLuckyEmblems.lua")
     lucky_emblems_lua_str = read_plaintext(file_path=rando_lucky_emblems_lua_path)
@@ -23,13 +19,13 @@ def update_lucky_emblems_door_lua(lucky_emblems_lua_str: str, settings_data: Dic
     lucky_emblems_lua_str = lucky_emblems_lua_str.replace("door_lucky_emblems = 100", "door_lucky_emblems = " + str(settings_data["required_lucky_emblems_door"]))
     return lucky_emblems_lua_str
 
-def output_lucky_emblems_lua_file(lucky_emblems_lua_str: str):
+def output_lucky_emblems_lua_file(lucky_emblems_lua_str: str) -> None:
     lucky_emblems_lua_path = root_path().joinpath("Working", "scripts", "1fmRandoHandleLuckyEmblems.lua")
     write_plaintext(file_path=lucky_emblems_lua_path, content=lucky_emblems_lua_str)
 
 
-def write_lucky_emblems_lua(settings_file: Path | None = None):
-    settings_data = get_settings_data(settings_file)
+def write_lucky_emblems_lua(settings_file: Path | None = None) -> None:
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data["end_of_the_world_unlock"] == "lucky_emblems" or settings_data["final_rest_door_key"] == "lucky_emblems":
         lucky_emblems_lua_str = get_lucky_emblems_template_lua()
         if settings_data["end_of_the_world_unlock"] == "lucky_emblems":

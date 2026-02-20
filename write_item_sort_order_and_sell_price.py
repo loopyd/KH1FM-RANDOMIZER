@@ -179,13 +179,8 @@ def write_item_buy_price(new_prices: Dict[int, int]) -> None:
     output_battle_table(battle_table_bytes)
 
 
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
-
-
 def write_item_sort_order_and_sell_price(settings_file: Path | None = None) -> None:
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     new_prices = {}
     new_prices[4] = 400 # Elixir added for WL flowers
     new_prices[254] = settings_data["mythril_price"]

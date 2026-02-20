@@ -5,11 +5,6 @@ from typing import Dict
 from helpers import root_path, read_json, read_plaintext, write_plaintext
 
 
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
-
-
 def get_receive_ap_items_lua() -> str:
     receive_ap_items_lua_path = root_path().joinpath("Template Luas", "1fmRandoReceiveAPItems.lua")
     receive_ap_items_lua_str = read_plaintext(file_path=receive_ap_items_lua_path)
@@ -27,7 +22,7 @@ def output_receive_ap_items_lua_file(receive_ap_items_lua_str: str) -> None:
 
 
 def write_receive_ap_items_lua(settings_file: Path | None = None) -> None:
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     receive_ap_items_lua_str = get_receive_ap_items_lua()
     receive_ap_items_lua_str = update_receive_ap_items_lua(receive_ap_items_lua_str, settings_data)
     output_receive_ap_items_lua_file(receive_ap_items_lua_str)

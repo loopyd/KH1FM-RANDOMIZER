@@ -17,11 +17,6 @@ def get_level_up_abilities_definitions() -> List[Dict]:
     return level_up_abilities_definitions
 
 
-def get_seed_json_data(seed_json_file: Path | None = None) -> Dict:
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
-    return seed_json_data
-
-
 def get_battle_table(kh1_data_path: Path) -> bytearray:
     battle_table_path = kh1_data_path.joinpath("btltbl.bin")
     battle_data = read_bytes(battle_table_path)
@@ -61,7 +56,7 @@ def get_battle_table_replacements(level_up_stats_definitions: List[Dict], level_
     return replacements
 
 
-def output_battle_table(battle_table_bytes: bytearray):
+def output_battle_table(battle_table_bytes: bytearray) -> None:
     battle_table_path = root_path().joinpath("Working", "btltbl.bin")
     write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
     
@@ -70,7 +65,7 @@ def write_level_up_rewards(seed_json_file: Path | None = None) -> None:
     kh1_data_path = root_path().joinpath("Working")
     level_up_abilities_definitions = get_level_up_abilities_definitions()
     level_up_stats_definitions = get_level_up_stats_definitions()
-    seed_json_data = get_seed_json_data(seed_json_file)
+    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
     replacements = get_battle_table_replacements(level_up_stats_definitions, level_up_abilities_definitions, seed_json_data)
     battle_table_bytes = get_battle_table(kh1_data_path)
     battle_table_bytes = update_battle_table(battle_table_bytes, replacements)

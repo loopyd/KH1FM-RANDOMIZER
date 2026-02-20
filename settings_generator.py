@@ -3,24 +3,14 @@ import sys
 import yaml
 from argparse import Namespace
 
-from helpers import root_path, read_json, write_json, write_plaintext, boolify, space_to_snake
+from helpers import root_path, write_plaintext, boolify, space_to_snake
+from config import read_presets, write_presets
 
 
 # Handle Splash Screen
 if getattr(sys, "frozen", False):
     import pyi_splash
     pyi_splash.close()
-
-
-def read_presets() -> dict:
-    presets_path = root_path().joinpath("settings_generator_presets.json")
-    data = read_json(presets_path)
-    return data
-
-
-def write_presets(args) -> None:
-    presets_path = root_path().joinpath("settings_generator_presets.json")
-    write_json(presets_path, vars(args), overwrite=True)
 
 
 def create_yaml(args: Namespace) -> str:
@@ -94,7 +84,7 @@ def output_yaml(yaml_str: str, slot_name: str):
     header_bg_color="#444034",
 )
 def main():
-    presets = read_presets()
+    presets = read_presets("settings")
     parser = GooeyParser()
     goal_group = parser.add_argument_group(
         "Goal", "Customize how the player can win the game."
@@ -693,7 +683,7 @@ def main():
     )
 
     args = parser.parse_args()
-    write_presets(args)
+    write_presets("settings", args)
     result = create_yaml(args)
     slot_name = getattr(args, "slot_name")
     if slot_name is None:

@@ -27,10 +27,6 @@ def get_battle_table(kh1_data_path: Path) -> bytearray:
     battle_data = read_bytes(battle_table_path)
     return battle_data
 
-def get_seed_json_data(seed_json_file: Path | None = None) -> Dict:
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
-    return seed_json_data
-
 
 def get_replacement_short_item(item_index: int) -> int:
     short_value = item_index * 0x10
@@ -138,7 +134,7 @@ def write_chests_and_rewards(seed_json_file = None) -> None:
     kh1_data_path = root_path().joinpath("Working")
     chest_definitions = get_chest_definitions()
     reward_definitions = get_rewards_definitions()
-    seed_json_data = get_seed_json_data(seed_json_file = seed_json_file)
+    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
     chest_replacements, reward_definitions = get_all_chest_replacements(chest_definitions, reward_definitions, seed_json_data)
     reward_replacements = get_all_reward_replacements(reward_definitions, seed_json_data)
     chest_template_lua = get_chest_template_lua()

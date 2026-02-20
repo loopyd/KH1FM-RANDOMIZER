@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Dict
 
 from helpers import root_path, read_json, read_plaintext, write_plaintext
 
@@ -18,11 +17,6 @@ lua_map = {
     "warp_anywhere": "1fmRandoWarpAnywhere.lua"}
 
 
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
-
-
 def get_lua_str(lua_file_name: Path) -> str:
     lua_path = root_path().joinpath("Template Luas", lua_file_name)
     lua_str = read_plaintext(file_path=lua_path)
@@ -35,7 +29,7 @@ def output_lua_file(lua_str: str, lua_file_name: Path) -> None:
 
 
 def write_toggleable_luas(settings_file: Path | None = None) -> None:
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     for key in lua_map.keys():
         if settings_data[key]:
             lua_str = get_lua_str(lua_map[key])

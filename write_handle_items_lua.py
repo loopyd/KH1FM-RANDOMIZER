@@ -4,10 +4,6 @@ from pathlib import Path
 from helpers import read_json, write_plaintext, read_plaintext, root_path
 
 
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
-
 def get_handle_items_lua() -> str:
     handle_items_lua_path = root_path().joinpath("Template Luas", "1fmRandoHandleItems.lua")
     handle_items_lua_str = read_plaintext(file_path=handle_items_lua_path)
@@ -35,7 +31,7 @@ def output_handle_items_lua_file(handle_items_lua_str: str) -> None:
 
 
 def write_handle_items_lua(settings_file: Path | None = None):
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     handle_items_lua_str = get_handle_items_lua()
     handle_items_lua_str = update_puppies_handle_items_lua(handle_items_lua_str, settings_data)
     handle_items_lua_str = update_stacking_worlds(handle_items_lua_str, settings_data)

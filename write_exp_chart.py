@@ -10,11 +10,6 @@ def get_exp_chart_definitions() -> List[Dict]:
     return exp_chart_definitions
 
 
-def get_settings_data(settings_file: str | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
-
-
 def get_battle_table(kh1_data_path: Path) -> bytearray:
     battle_table_path = kh1_data_path.joinpath("btltbl.bin")
     battle_data = read_bytes(battle_table_path)
@@ -40,7 +35,7 @@ def apply_exp_multiplier(battle_table_bytes: bytearray, settings_data: Dict, exp
 def write_exp_chart(settings_file: Path | None = None) -> None:
     kh1_data_path = root_path().joinpath("Working")
     exp_chart_definitions = get_exp_chart_definitions()
-    settings_data = get_settings_data(settings_file = settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     battle_table_bytes = get_battle_table(kh1_data_path)
     battle_table_bytes = apply_exp_multiplier(battle_table_bytes, settings_data, exp_chart_definitions)
     output_battle_table(battle_table_bytes)

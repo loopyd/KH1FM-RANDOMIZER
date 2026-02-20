@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Dict
 
 from write_item_descriptions import build_item_description_string, build_item_description_string_array, concat_item_descriptions, build_item_description_bytes
 from helpers import root_path, read_json, read_bytes, write_bytes, replace_value_at_index, read_plaintext, write_plaintext
@@ -33,11 +32,6 @@ TOO_LONG_DESCRIPTIONS = {
     "Required Postcards": "Rqrd Postcards",
     "Scaling Spell Potency": "Scaling Spells",
     "Stacking World Items": "Stacking Worlds"}
-
-
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
 
 
 def get_gummi_item_description_bytes(kh1_data_path: Path) -> bytearray:
@@ -94,9 +88,9 @@ def output_gummi_items_lua_file(gummi_items_lua_str: str) -> None:
     write_plaintext(file_path=gummi_items_lua_path, data=gummi_items_lua_str, overwrite=True, create_parents=True)
 
 
-def write_gummi_items(setings_file: Path | None = None) -> None:
+def write_gummi_items(settings_file: Path | None = None) -> None:
     kh1_data_path = root_path().joinpath("Working")
-    settings_data = get_settings_data(setings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     settings_num = 0
 
     # Handle Text

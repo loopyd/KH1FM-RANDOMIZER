@@ -26,11 +26,6 @@ def remove_map_prizes(map_prize_bytes: bytearray, map_prize_definitions) -> byte
 def write_map_prize_bin(map_prize_bytes: bytearray) -> None:
     map_prize_path = root_path().joinpath("Working", "map_prize.bin")
     write_bytes(file_path=map_prize_path, data=map_prize_bytes, overwrite=True, create_parents=True)
-    
-    
-def get_seed_json_data(seed_json_file: Path | None = None) -> Dict:
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
-    return seed_json_data
 
 
 def replace_map_prize_items(map_prize_bytes: bytearray, map_prize_definitions: List[Dict], seed_json_data: Dict):
@@ -50,7 +45,7 @@ def write_map_prizes(seed_json_file: Path | None = None) -> None:
     map_prize_definitions = get_map_prize_definitions()
     map_prize_data = get_map_prize_data(kh1_data_path)
     map_prize_bytes = remove_map_prizes(map_prize_data, map_prize_definitions)
-    seed_json_data = get_seed_json_data(seed_json_file = seed_json_file)
+    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
     map_prize_bytes = replace_map_prize_items(map_prize_bytes, map_prize_definitions, seed_json_data)
     write_map_prize_bin(map_prize_bytes)
 

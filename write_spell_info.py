@@ -3,14 +3,6 @@ from pathlib import Path
 from typing import Dict, List
 
 
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    try:
-        settings_data = read_json(file_path=settings_file, ask_prompt=True)
-        return settings_data
-    except Exception as e:
-         print(f"Error reading settings file: {e}")
-         raise e     
-
 def get_spell_mp_cost_definitions() -> List[Dict]:
     spell_cost_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Spell MP Cost.csv")
     spell_mp_cost_definitions = read_csv(spell_cost_csv_path)
@@ -114,7 +106,7 @@ def replace_spell_effectiveness(battle_table_bytes, spell_mp_costs_data, spell_e
     return battle_table_bytes
 
 def write_spell_info(settings_file: Path | None = None, mp_cost_file: Path | None = None) -> None:
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     if "randomize_spell_mp_costs" not in settings_data.keys():
         print("Generation is from older AP world, skipping...")
         return

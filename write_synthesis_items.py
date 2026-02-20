@@ -1,11 +1,7 @@
 from pathlib import Path
-from typing import Dict, List
+from typing import List
 
 from helpers import root_path, read_json, read_plaintext, write_plaintext
-
-def get_seed_json_data(seed_json_file: Path | None = None) -> Dict:
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
-    return seed_json_data
 
 
 def get_synth_items(seed_json_data) -> List[int]:
@@ -39,7 +35,7 @@ def output_synth_lua_file(synth_lua_str: str) -> None:
 
 
 def write_synthesis_items(seed_json_file: Path | None = None) -> None:
-    seed_json_data = get_seed_json_data(seed_json_file)
+    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
     synth_items = get_synth_items(seed_json_data)
     synth_lua_str = get_synth_template_lua()
     synth_lua_str = update_synth_lua(synth_lua_str, synth_items)

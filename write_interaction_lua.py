@@ -3,10 +3,6 @@ from pathlib import Path
 
 from helpers import read_json, root_path, read_plaintext, write_plaintext
 
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
-
 
 def get_interaction_template_lua() -> str:
     interaction_lua_path = root_path().joinpath("Template Luas", "1fmRandoInteraction.lua")
@@ -32,7 +28,7 @@ def output_interaction_lua_file(interaction_lua_str: str) -> None:
 
 
 def write_interaction_lua(settings_file: Path | None = None):
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data["interact_in_battle"] or settings_data["keyblades_unlock_chests"]:
         interaction_lua_str = get_interaction_template_lua()
         interaction_lua_str = update_interaction_interact_in_battle_lua(interaction_lua_str, settings_data)

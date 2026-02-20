@@ -1,17 +1,7 @@
 from pathlib import Path
-from typing import Dict
+from typing import List
 
 from helpers import root_path, read_json, read_plaintext, write_plaintext
-
-
-def get_ap_cost_data(ap_cost_file: Path | None = None) -> Dict:
-    ap_cost_data = read_json(file_path=ap_cost_file, ask_prompt=True)
-    return ap_cost_data
-
-
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
 
 
 def get_ap_cost_template_lua():
@@ -25,7 +15,7 @@ def output_ap_cost_template_lua(ap_costs_lua_str: str):
     write_plaintext(file_path=file_path, data=ap_costs_lua_str, overwrite=True, create_parents=True)
 
 
-def update_ap_costs_template_lua(ap_cost_data, ap_costs_lua_str: str) -> str:
+def update_ap_costs_template_lua(ap_cost_data: List, ap_costs_lua_str: str) -> str:
     costs_string = ""
     for ap_cost in ap_cost_data:
         costs_string = costs_string + str(ap_cost["AP Cost"]) + ","
@@ -35,9 +25,9 @@ def update_ap_costs_template_lua(ap_cost_data, ap_costs_lua_str: str) -> str:
 
 
 def write_ap_cost_lua(settings_file: Path | None = None, ap_cost_file: Path | None = None):
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data["randomize_ap_costs"] != "off":
-        ap_cost_data = get_ap_cost_data(ap_cost_file)
+        ap_cost_data = read_json(file_path=ap_cost_file, ask_prompt=False)
         ap_costs_lua_str = get_ap_cost_template_lua()
         ap_costs_lua_str = update_ap_costs_template_lua(ap_cost_data, ap_costs_lua_str)
         output_ap_cost_template_lua(ap_costs_lua_str)

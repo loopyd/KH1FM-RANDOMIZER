@@ -1,11 +1,6 @@
 from pathlib import Path
-from typing import Dict
 
 from helpers import read_json, root_path, read_plaintext, write_plaintext
-
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
 
 
 def get_lua_str(lua_file_name: Path) -> str:
@@ -20,7 +15,7 @@ def output_lua_file(lua_str: str, lua_file_name: Path) -> None:
 
 
 def write_synthesis_item_names_lua(settings_file: Path | None = None) -> None:
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     synthesis_item_names_bytes_array = settings_data["synthesis_item_name_byte_arrays"]
     synth_item_bytes_str = str(synthesis_item_names_bytes_array).replace("[", "{").replace("]", "}")
     synthesis_item_names_lua_str = get_lua_str("1fmRandoWriteSynthesisItemNames.lua")

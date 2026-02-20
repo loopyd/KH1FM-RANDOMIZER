@@ -1,12 +1,6 @@
-from ast import Dict
-
-from pathlib import Path
+from typing import Dict
 
 from helpers import read_plaintext, root_path, read_json, write_plaintext
-
-def get_settings_data(settings_file: Path | None = None) -> Dict:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
-    return settings_data
 
 
 def get_death_link_template_lua() -> str:
@@ -32,7 +26,7 @@ def output_death_link_lua_file(death_link_lua_str: str) -> None:
 
 
 def write_death_link_lua(settings_file = None):
-    settings_data = get_settings_data(settings_file)
+    settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data["death_link"] != "off" or settings_data["donald_death_link"] or settings_data["goofy_death_link"]:
         death_link_lua_str = get_death_link_template_lua()
         death_link_lua_str = update_death_link_lua(death_link_lua_str, settings_data)
