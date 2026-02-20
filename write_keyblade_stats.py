@@ -1,37 +1,35 @@
-from tkinter import filedialog
-import json
-import csv
+from pathlib import Path
+from typing import Dict, List
 
 from definitions import keyblade_list
 from write_item_descriptions import replace_specific_item_description
+from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
 
-def get_seed_keyblade_stats_data(seed_json_file = None):
-    while not seed_json_file:
-        seed_json_file = filedialog.askopenfilename(filetypes =[('JSON', '*.json')], title = "KH1 Keyblade Stats JSON File")
-        if not seed_json_file:
-            print("Error, please select a valid KH1 keyblade stats json file")
-    with open(seed_json_file, mode='r') as file:
-        seed_json_data = json.load(file)
+
+def get_seed_keyblade_stats_data(seed_json_file: Path | None = None) -> List[Dict]:
+    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
     return seed_json_data
 
-def get_battle_table(kh1_data_path):
-    with open(kh1_data_path + "/btltbl.bin", mode = 'rb') as file:
-        return bytearray(file.read())
 
-def get_weapon_stat_definitions():
-    with open('./Documentation/KH1FM Documentation - Weapon Stats.csv', mode = 'r') as file:
-        weapon_definitions = []
-        weapon_data = csv.DictReader(file)
-        for line in weapon_data:
-            weapon_definitions.append(line)
+def get_battle_table(kh1_data_path: Path) -> bytearray:
+    battle_table_path = kh1_data_path.joinpath("btltbl.bin")
+    battle_data = read_bytes(battle_table_path)
+    return battle_data
+
+
+def get_weapon_stat_definitions() -> List[Dict]:
+    weapon_stats_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Weapon Stats.csv")
+    weapon_definitions = read_csv(file_path=weapon_stats_csv_path)
     return weapon_definitions
 
-def get_weapon_byte_offset(weapon_definitions, stat, keyblade, user):
+
+def get_weapon_byte_offset(weapon_definitions: List[Dict], stat: str, keyblade: str, user: str):
     for weapon in weapon_definitions:
         if stat == weapon["Notes"] and keyblade == weapon["Keyblade"] and weapon["User"] == user:
             return weapon["Offset"]
 
-def write_weapon_stats(battle_table_data, weapon_definitions, keyblade_stats_data):
+
+def write_weapon_stats(battle_table_data: bytearray, weapon_definitions: List[Dict], keyblade_stats_data: List[Dict]) -> bytearray:
     i = 0
     while i < len(keyblade_list):
         if "STR" in keyblade_stats_data[i].keys():
@@ -79,17 +77,20 @@ def write_weapon_stats(battle_table_data, weapon_definitions, keyblade_stats_dat
         i = i + 1
     return battle_table_data
 
-def output_battle_table(battle_table_bytes):
-    with open('./Working/btltbl.bin', mode = 'wb') as file:
-        file.write(battle_table_bytes)
+
+def output_battle_table(battle_table_bytes: bytearray) -> None:
+    battle_table_path = root_path().joinpath("Working", "btltbl.bin")
+    write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
+
 
 def write_keyblade_stats(seed_json_file = None):
-    kh1_data_path = "./Working/"
+    kh1_data_path = root_path().joinpath("Working")
     keyblade_stats_data = get_seed_keyblade_stats_data(seed_json_file)
     battle_table_bytes = get_battle_table(kh1_data_path)
     weapon_definitions = get_weapon_stat_definitions()
     battle_table_bytes = write_weapon_stats(battle_table_bytes, weapon_definitions, keyblade_stats_data)
     output_battle_table(battle_table_bytes)
+
 
 if __name__ == "__main__":
     write_keyblade_stats()

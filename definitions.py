@@ -1040,3 +1040,18 @@ augment_strings = {
     2644037: ["aug_aero_down_acc", "Augment: Aero Down"],
     2644038: ["aug_summon_anywhere_acc", "Augment: Summon Anywhere"]
 }
+
+
+def get_replacement_byte(char: str) -> int:
+    """
+    Gets the byte value that corresponds to the given character in the KH1 hex to char map.
+    
+    Args:
+        char (str): The character to find the byte value for.
+    
+    Returns:
+        int: The byte value that corresponds to the given character.
+    """
+    for i in range(len(kh1_hex_to_char_map)):
+        if kh1_hex_to_char_map[i] == char:
+            return i

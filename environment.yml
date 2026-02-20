@@ -1,0 +1,16 @@
+name: kh1fm-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10.19
+  - wheel
+  - setuptools
+  - pip
+  - pip:
+    - wxPython
+    - pyinstaller
+    - gooey
+    - six
+    - pyyaml
+prefix: ./.venv

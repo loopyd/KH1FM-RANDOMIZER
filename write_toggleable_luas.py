@@ -1,5 +1,7 @@
-from tkinter import filedialog
-import json
+from pathlib import Path
+from typing import Dict
+
+from helpers import root_path, read_json, read_plaintext, write_plaintext
 
 lua_map = {
     "shorten_go_mode": "1fmRandoShortenGoMode.lua",
@@ -16,30 +18,29 @@ lua_map = {
     "warp_anywhere": "1fmRandoWarpAnywhere.lua"}
 
 
-def get_settings_data(settings_file = None):
-    while not settings_file:
-        settings_file = filedialog.askopenfilename(filetypes =[('JSON', '*.json')], title = "KH1 Randomizer Settings JSON")
-        if not settings_file:
-            print("Error, please select a valid KH1 settings file")
-    with open(settings_file, mode='r') as file:
-        settings_data = json.load(file)
+def get_settings_data(settings_file: Path | None = None) -> Dict:
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     return settings_data
 
-def get_lua_str(lua_file_name):
-    with open('./Template Luas/' + lua_file_name, mode = 'r') as file:
-        lua_str = file.read()
+
+def get_lua_str(lua_file_name: Path) -> str:
+    lua_path = root_path().joinpath("Template Luas", lua_file_name)
+    lua_str = read_plaintext(file_path=lua_path)
     return lua_str
 
-def output_lua_file(lua_str, lua_file_name):
-    with open('./Working/scripts/' + lua_file_name, mode = 'w') as file:
-        file.write(lua_str)
 
-def write_toggleable_luas(settings_file = None):
+def output_lua_file(lua_str: str, lua_file_name: Path) -> None:
+    lua_path = root_path().joinpath("Working", "scripts", lua_file_name)
+    write_plaintext(file_path=lua_path, data=lua_str, overwrite=True, create_parents=True)
+
+
+def write_toggleable_luas(settings_file: Path | None = None) -> None:
     settings_data = get_settings_data(settings_file)
     for key in lua_map.keys():
         if settings_data[key]:
             lua_str = get_lua_str(lua_map[key])
             output_lua_file(lua_str, lua_map[key])
+
 
 if __name__ == "__main__":
     write_toggleable_luas()

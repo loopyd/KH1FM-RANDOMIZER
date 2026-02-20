@@ -1,28 +1,14 @@
-from tkinter import filedialog
-import json
-import csv
-#import pandas as pd
+from typing import Dict, List
+from pathlib import Path
 
-from definitions import item_list, sort_order, filler_item_ids, buy_prices
+from definitions import sort_order, filler_item_ids
+from helpers import root_path, read_bytes, write_bytes, read_csv, read_json
 
-def get_battle_table(kh1_data_path):
-    with open(kh1_data_path + "/btltbl.bin", mode = 'rb') as file:
-        return bytearray(file.read())
 
-def to_hex_no_0x(val):
-    val = hex(val).upper().replace("0X","")
-    if len(val) % 2 == 1:
-        val = "0" + val
-    return val
-    
-def bytes_to_int(byte_array, byteorder='little'):
-    return int.from_bytes(byte_array, byteorder)
-
-def convert_byte_array_to_string(byte_array):
-    output_string = ""
-    for byte in byte_array:
-        output_string = output_string + to_hex_no_0x(byte) + " "
-    return output_string[:-1]
+def get_battle_table(kh1_data_path: Path) -> bytearray:
+    battle_table_path = kh1_data_path.joinpath("btltbl.bin")
+    battle_table_bytes = read_bytes(file_path=battle_table_path)
+    return battle_table_bytes
 
 #def write_item_csv():
 #    kh1_data_path = "./Working/"
@@ -135,20 +121,20 @@ def convert_byte_array_to_string(byte_array):
 #       df = pd.DataFrame(btl_tbl_item_values)
 #       df.to_csv("Battle Table Items.csv", index=False, quoting=csv.QUOTE_ALL)
 
-def get_battle_table_item_definitions():
-    with open('./Documentation/KH1FM Documentation - Battle Table Items.csv', mode = 'r') as file:
-        battle_table_item_definitions = []
-        battle_table_item_data = csv.DictReader(file)
-        for line in battle_table_item_data:
-            battle_table_item_definitions.append(line)
+
+def get_battle_table_item_definitions() -> List[Dict]:
+    battle_table_defintions_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Battle Table Items.csv")
+    battle_table_item_definitions = read_csv(file_path=battle_table_defintions_csv_path)
     return battle_table_item_definitions
 
-def output_battle_table(battle_table_bytes):
-    with open('./Working/btltbl.bin', mode = 'wb') as file:
-        file.write(battle_table_bytes)
 
-def write_item_sort_order():
-    kh1_data_path = "./Working/"
+def output_battle_table(battle_table_bytes: bytearray) -> None:
+    battle_table_path = root_path().joinpath("Working", "btltbl.bin")
+    write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
+
+
+def write_item_sort_order() -> None:
+    kh1_data_path = root_path().joinpath("Working")
     battle_table_bytes = get_battle_table(kh1_data_path)
     battle_table_item_definitions = get_battle_table_item_definitions()
     for battle_table_item_definition in battle_table_item_definitions:
@@ -162,8 +148,9 @@ def write_item_sort_order():
             battle_table_bytes[offset + 3] = replacement_byte_array[3]
     output_battle_table(battle_table_bytes)
 
-def write_item_sell_price():
-    kh1_data_path = "./Working/"
+
+def write_item_sell_price() -> None:
+    kh1_data_path = root_path().joinpath("Working")
     battle_table_bytes = get_battle_table(kh1_data_path)
     battle_table_item_definitions = get_battle_table_item_definitions()
     for battle_table_item_definition in battle_table_item_definitions:
@@ -176,8 +163,9 @@ def write_item_sell_price():
                 battle_table_bytes[offset + 1] = replacement_byte_array[1]
     output_battle_table(battle_table_bytes)
 
-def write_item_buy_price(new_prices):
-    kh1_data_path = "./Working/"
+
+def write_item_buy_price(new_prices: Dict[int, int]) -> None:
+    kh1_data_path = root_path().joinpath("Working")
     battle_table_bytes = get_battle_table(kh1_data_path)
     battle_table_item_definitions = get_battle_table_item_definitions()
     for battle_table_item_definition in battle_table_item_definitions:
@@ -190,16 +178,13 @@ def write_item_buy_price(new_prices):
                 battle_table_bytes[offset + 1] = replacement_byte_array[1]
     output_battle_table(battle_table_bytes)
 
-def get_settings_data(settings_file = None):
-    while not settings_file:
-        settings_file = filedialog.askopenfilename(filetypes =[('JSON', '*.json')], title = "KH1 Randomizer Settings JSON")
-        if not settings_file:
-            print("Error, please select a valid KH1 settings file")
-    with open(settings_file, mode='r') as file:
-        settings_data = json.load(file)
+
+def get_settings_data(settings_file: Path | None = None) -> Dict:
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     return settings_data
 
-def write_item_sort_order_and_sell_price(settings_file = None):
+
+def write_item_sort_order_and_sell_price(settings_file: Path | None = None) -> None:
     settings_data = get_settings_data(settings_file)
     new_prices = {}
     new_prices[4] = 400 # Elixir added for WL flowers
@@ -208,6 +193,7 @@ def write_item_sort_order_and_sell_price(settings_file = None):
     write_item_sort_order()
     write_item_sell_price()
     write_item_buy_price(new_prices)
+
 
 if __name__ == "__main__":
     write_item_sort_order_and_sell_price()

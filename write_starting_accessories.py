@@ -1,61 +1,46 @@
-from tkinter import filedialog
-import csv
-import json
-import os
+from pathlib import Path
+from typing import Dict, List
 
-def get_settings_data(settings_file = None):
-    while not settings_file:
-        settings_file = filedialog.askopenfilename(filetypes =[('JSON', '*.json')], title = "KH1 Randomizer Settings JSON")
-        if not settings_file:
-            print("Error, please select a valid KH1 settings file")
-    with open(settings_file, mode='r') as file:
-        settings_data = json.load(file)
+from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
+
+
+def get_settings_data(settings_file: Path | None = None) -> Dict:
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     return settings_data
 
-def get_starting_accessory_equipped_defintions():
-    with open('./Documentation/KH1FM Documentation - Party Member Starting Accessories Equipped.csv', mode = 'r') as file:
-        evdl_locations = []
-        evdl_location_data = csv.DictReader(file)
-        for line in evdl_location_data:
-            evdl_locations.append(line)
-    return evdl_locations
 
-def get_starting_accessory_stock_defintions():
-    with open('./Documentation/KH1FM Documentation - Party Member Starting Accessories Stock.csv', mode = 'r') as file:
-        evdl_locations = []
-        evdl_location_data = csv.DictReader(file)
-        for line in evdl_location_data:
-            evdl_locations.append(line)
-    return evdl_locations
-
-def get_seed_json_data(seed_json_file = None):
-    while not seed_json_file:
-        seed_json_file = filedialog.askopenfilename(filetypes =[('JSON', '*.json')], title = "KH1 Randomizer Seed JSON")
-        if not seed_json_file:
-            print("Error, please select a valid KH1 seed file")
-    with open(seed_json_file, mode='r') as file:
-        seed_json_data = json.load(file)
+def get_seed_json_data(seed_json_file: str | None = None) -> Dict:
+    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
     return seed_json_data
 
-def get_evdl_bytes(file_path):
-    with open(file_path, mode = 'rb') as file:
-        return bytearray(file.read())
 
-def safe_open_wb(path):
-    ''' Open "path" for writing, creating any parent directories as needed.
-    '''
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    return open(path, 'wb')
+def get_starting_accessory_equipped_defintions() -> List[Dict]:
+    party_member_starting_accessories_equipped_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Party Member Starting Accessories Equipped.csv")
+    evdl_locations = read_csv(file_path=party_member_starting_accessories_equipped_csv_path)
+    return evdl_locations
 
-def write_evdl_bytes_to_file(evdl_file, evdl_bytes):
-    with safe_open_wb('./Working/' + evdl_file) as file:
-        file.write(evdl_bytes)
 
-def write_starting_accessories_equipped(seed_json_file = None, settings_file = None):
-    kh1_data_path = "./Working/"
+def get_starting_accessory_stock_defintions() -> List[Dict]:
+    party_member_starting_accessories_stock_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Party Member Starting Accessories Stock.csv")
+    evdl_locations = read_csv(file_path=party_member_starting_accessories_stock_csv_path)
+    return evdl_locations
+
+
+def get_evdl_bytes(file_path: Path) -> bytearray:
+    evdl_bytes = read_bytes(file_path=file_path)
+    return evdl_bytes
+
+
+def write_evdl_bytes_to_file(file_path: Path, evdl_bytes: bytearray) -> None:
+    output_path = root_path().joinpath("Working", file_path)
+    write_bytes(file_path=output_path, data=evdl_bytes, overwrite=True, create_parents=True)
+
+
+def write_starting_accessories_equipped(seed_json_file: Path | None = None, settings_file: Path | None = None):
+    kh1_data_path = root_path().joinpath("Working")
     settings_data = get_settings_data(settings_file)
     if settings_data["randomize_party_member_starting_accessories"]:
-        evdl_location = kh1_data_path + "/remastered/dh01.ard/UK_dh01c.ev"
+        evdl_location = kh1_data_path.joinpath("remastered", "dh01.ard", "UK_dh01c.ev")
         evdl_bytes = get_evdl_bytes(evdl_location)
         starting_accessory_equipped_definitions = get_starting_accessory_equipped_defintions()
         seed_json_data = get_seed_json_data(seed_json_file)
@@ -91,13 +76,14 @@ def write_starting_accessories_equipped(seed_json_file = None, settings_file = N
         if accessories_placed < 10:
             print("Got less than 10 accessories to place!  Placed: " + str(accessories_placed))
             exit(1)
-        write_evdl_bytes_to_file("/remastered/dh01.ard/UK_dh01c.ev", evdl_bytes)
+        write_evdl_bytes_to_file(Path("remastered") / "dh01.ard" / "UK_dh01c.ev", evdl_bytes)
 
-def write_starting_accessories_stock(seed_json_file = None, settings_file = None):
-    kh1_data_path = "./Working/"
+
+def write_starting_accessories_stock(seed_json_file: Path | None = None, settings_file: Path | None = None):
+    kh1_data_path = root_path().joinpath("Working")
     settings_data = get_settings_data(settings_file)
     if settings_data["randomize_party_member_starting_accessories"]:
-        evdl_location = kh1_data_path + "/remastered/dh01.ard/UK_dh01c.ev"
+        evdl_location = kh1_data_path.joinpath("remastered", "dh01.ard", "UK_dh01c.ev")
         evdl_bytes = get_evdl_bytes(evdl_location)
         starting_accessory_stock_definitions = get_starting_accessory_stock_defintions()
         seed_json_data = get_seed_json_data(seed_json_file)
@@ -132,11 +118,13 @@ def write_starting_accessories_stock(seed_json_file = None, settings_file = None
         if accessories_placed < 10:
             print("Got less than 10 accessories to place!  Placed: " + str(accessories_placed))
             exit(1)
-        write_evdl_bytes_to_file("/remastered/dh01.ard/UK_dh01c.ev", evdl_bytes)
+        write_evdl_bytes_to_file(Path("remastered") / "dh01.ard" / "UK_dh01c.ev", evdl_bytes)
 
-def write_starting_accessories(seed_json_file = None, settings_file = None):
+
+def write_starting_accessories(seed_json_file: Path | None = None, settings_file: Path | None = None):
     write_starting_accessories_equipped(seed_json_file, settings_file)
     write_starting_accessories_stock(seed_json_file, settings_file)
+
 
 if __name__=="__main__":
     write_starting_accessories()

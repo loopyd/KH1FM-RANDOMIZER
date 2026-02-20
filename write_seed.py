@@ -1,23 +1,24 @@
-from tkinter import filedialog
-import json
+from pathlib import Path
+from typing import Dict
 
-def get_settings_data(settings_file = None):
-    while not settings_file:
-        settings_file = filedialog.askopenfilename(filetypes =[('JSON', '*.json')], title = "KH1 Randomizer Settings JSON")
-        if not settings_file:
-            print("Error, please select a valid KH1 settings file")
-    with open(settings_file, mode='r') as file:
-        settings_data = json.load(file)
+from helpers import root_path, read_json, write_plaintext
+
+
+def get_settings_data(settings_file: Path | None = None) -> Dict:
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     return settings_data
 
-def output_seed(seed):
-    with open('./Working/scripts/randofiles/seed.txt', mode = 'w') as file:
-        file.write(seed)
 
-def write_seed(settings_file = None):
+def output_seed(seed: str) -> None:
+    output_path = root_path().joinpath("Working", "scripts", "randofiles", "seed.txt")
+    write_plaintext(file_path=output_path, content=seed, overwrite=True, create_parents=True)
+
+
+def write_seed(settings_file: Path | None = None) -> None:
     settings_data = get_settings_data(settings_file)
     seed = settings_data["seed"]
     output_seed(seed)
+
 
 if __name__ == "__main__":
     write_seed()

@@ -1,37 +1,26 @@
-import os
 import shutil
-from tkinter import filedialog
-import csv
+from typing import Dict, List
+from pathlib import Path
 
-def get_kh1_data_path(kh1_data_path = None):
-    while not kh1_data_path:
-        kh1_data_path = filedialog.askdirectory()
-        if not kh1_data_path:
-            print("Error, please select a valid KH1 data path")
-    return kh1_data_path
+from helpers import get_folder, root_path, read_csv
 
-def write_static_files():
-    shutil.copytree("./Static Files/",  "./Working/", dirs_exist_ok=True)
 
-def list_definition_files_in_current_directory():
+def write_static_files() -> None:
+    source_path = root_path().joinpath("Static Files")
+    destination_path = root_path().joinpath("Working")
+    shutil.copytree(source_path, destination_path, dirs_exist_ok=True)
+
+
+def list_definition_files_in_current_directory() -> List[str]:
     files = []
-    for file in os.listdir("./Documentation/"):
+    documentation_path = root_path().joinpath("Documentation")
+    for file in documentation_path.iterdir():
         if "KH1FM Documentation" in file:
             files.append(file)
     return files
 
-def read_csv_data(filepath):
-    with open(filepath, mode = 'r') as file:
-        csv_lines = []
-        csv_data = csv.DictReader(file)
-        for line in csv_data:
-            csv_lines.append(line)
-    return csv_lines
 
-def get_directory(filepath):
-    return os.path.dirname(filepath)
-
-def copy_src_kh1_files_to_output(kh1_data_path, csv_lines):
+def copy_src_kh1_files_to_output(kh1_data_path: Path, csv_lines: List[dict]) -> None:
     copied_files = []
     for line in csv_lines:
         if "File" in line.keys():
@@ -39,22 +28,26 @@ def copy_src_kh1_files_to_output(kh1_data_path, csv_lines):
                 source_path = kh1_data_path
                 if "Use Corrected File?" in line.keys():
                     if line["Use Corrected File?"] == "Y":
-                        source_path = "./Corrected EVDLs/"
-                input_full_path = source_path + "/" +  line["File"]
-                output_full_path = "./Working/" + "/" + line["File"]
-                print("Copying " + input_full_path + " to " + output_full_path)
-                if not os.path.exists(get_directory(output_full_path)):
-                    os.makedirs(get_directory(output_full_path))
+                        source_path = root_path().joinpath("Corrected EVDLs")
+                input_full_path = source_path.joinpath(line["File"])
+                output_full_path = root_path().joinpath("Working", line["File"])
+                print(f"Copying {input_full_path} to {output_full_path}")
+                output_directory = output_full_path.parent
+                if not output_directory.exists():
+                    output_directory.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(input_full_path, output_full_path)
                 copied_files.append(line["File"])
 
-def write_files_to_working(kh1_data_path = None):
-    kh1_data_path = get_kh1_data_path(kh1_data_path)
-    csv_lines = []
+
+def write_files_to_working(kh1_data_path: Path | None = None) -> None:
+    kh1_data_path = get_folder(folder_path=kh1_data_path, label="KH1 Data Path", ask_prompt=True)
+    csv_lines: List[Dict] = []
     for file in list_definition_files_in_current_directory():
-        csv_lines = csv_lines + read_csv_data("./Documentation/" + file)
+        file_path = root_path().joinpath("Documentation", file)
+        csv_lines.extend(read_csv(file_path=file_path))
     copy_src_kh1_files_to_output(kh1_data_path, csv_lines)
     write_static_files()
+
 
 if __name__=="__main__":
     write_files_to_working()

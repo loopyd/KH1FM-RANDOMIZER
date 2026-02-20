@@ -1,26 +1,18 @@
 import shutil
-import os
-from tkinter import filedialog
+from pathlib import Path
 
-def write_settings_file(settings_file=None):
-    # Prompt for a file if not provided
-    while not settings_file:
-        settings_file = filedialog.askopenfilename(
-            filetypes=[('JSON', '*.json')],
-            title="KH1 Randomizer Settings JSON"
-        )
-        if not settings_file:
-            print("Error, please select a valid KH1 settings file")
+from helpers import root_path, get_file
+
+def write_settings_file(settings_file: Path | None = None) -> Path:
+    settings_file = get_file(file_path=settings_file, file_type=[("JSON", "*.json")], ask_prompt=True, label="KH1 Randomizer Settings JSON")
     
-    # Ensure the target directory exists
-    target_dir = "./Working"
-    os.makedirs(target_dir, exist_ok=True)
+    target_dir = root_path().joinpath("Working")
+    if not target_dir.exists():
+        target_dir.mkdir(parents=True, exist_ok=True)
     
-    # Copy the file into the target directory
-    target_path = os.path.join(target_dir, os.path.basename(settings_file))
+    target_path = target_dir.joinpath(settings_file.name)
     shutil.copy2(settings_file, target_path)
     print(f"Copied settings file to: {target_path}")
-    
     return target_path
 
 if __name__ == "__main__":

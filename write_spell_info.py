@@ -1,51 +1,43 @@
-import os
-import json
-import csv
+from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
+from pathlib import Path
+from typing import Dict, List
 
-from definitions import kh1_hex_to_char_map
-from pprint import pprint
 
-def get_settings_data(settings_file = None):
-    while not settings_file:
-        settings_file = filedialog.askopenfilename(filetypes =[('JSON', '*.json')], title = "KH1 Randomizer Settings JSON")
-        if not settings_file:
-            print("Error, please select a valid KH1 settings file")
-    with open(settings_file, mode='r') as file:
-        settings_data = json.load(file)
-    return settings_data
+def get_settings_data(settings_file: Path | None = None) -> Dict:
+    try:
+        settings_data = read_json(file_path=settings_file, ask_prompt=True)
+        return settings_data
+    except Exception as e:
+         print(f"Error reading settings file: {e}")
+         raise e     
 
-def get_spell_mp_cost_definitions():
-    with open('./Documentation/KH1FM Documentation - Spell MP Cost.csv', mode = 'r') as file:
-        spell_mp_cost_definitions = []
-        spell_mp_cost_data = csv.DictReader(file)
-        for line in spell_mp_cost_data:
-            spell_mp_cost_definitions.append(line)
+def get_spell_mp_cost_definitions() -> List[Dict]:
+    spell_cost_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Spell MP Cost.csv")
+    spell_mp_cost_definitions = read_csv(spell_cost_csv_path)
     return spell_mp_cost_definitions
 
-def get_spell_effectiveness_definitions():
-    with open('./Documentation/KH1FM Documentation - Spell Effectiveness.csv', mode = 'r') as file:
-        spell_effectiveness_definitions = []
-        spell_effectiveness_data = csv.DictReader(file)
-        for line in spell_effectiveness_data:
-            spell_effectiveness_definitions.append(line)
+def get_spell_effectiveness_definitions() -> List[Dict]:
+    spell_effectiveness_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Spell Effectiveness.csv")
+    spell_effectiveness_definitions = read_csv(spell_effectiveness_csv_path)
     return spell_effectiveness_definitions
 
-def get_spell_mp_costs_data(spell_mp_costs_json_file = None):
-    while not spell_mp_costs_json_file:
-        spell_mp_costs_json_file = filedialog.askopenfilename(filetypes =[('JSON', '*.json')], title = "KH1 Spell MP Costs JSON File")
-        if not spell_mp_costs_json_file:
-            print("Error, please select a valid KH1 spell mp costs json file")
-    with open(spell_mp_costs_json_file, mode='r') as file:
-        spell_mp_costs_data = json.load(file)
-    return spell_mp_costs_data
+def get_spell_mp_costs_data(spell_mp_costs_json_file: Path | None = None) -> List[int]:
+    try:
+        spell_mp_costs_data = read_json(file_path=spell_mp_costs_json_file, ask_prompt=True)
+        return spell_mp_costs_data
+    except Exception as e:
+         print(f"Error reading spell MP costs file: {e}")
+         raise e
 
-def get_battle_table(kh1_data_path):
-    with open(kh1_data_path + "/btltbl.bin", mode = 'rb') as file:
-        return bytearray(file.read())
+def get_battle_table(kh1_data_path: Path) -> bytearray:
+    battle_table_path = kh1_data_path.joinpath("btltbl.bin")
+    battle_table_bytes = read_bytes(battle_table_path)
+    return battle_table_bytes
 
-def get_sysmsg_bytes(kh1_data_path):
-    with open(kh1_data_path + "/remastered/menu/uk/sysmsg.bin/UK_sysmsg.binl", mode = 'rb') as file:
-        return bytearray(file.read())
+def get_sysmsg_bytes(kh1_data_path: Path) -> bytearray:
+    sysmsg_path = kh1_data_path.joinpath("remastered", "menu", "uk", "sysmsg.bin", "UK_sysmsg.binl")
+    sysmsg_bytes = read_bytes(sysmsg_path)
+    return sysmsg_bytes
 
 def replace_sysmsgs(sysmsg_bytes, spell_mp_costs_data):
     replacement_bytes = {
@@ -88,26 +80,22 @@ def replace_sysmsgs(sysmsg_bytes, spell_mp_costs_data):
         sysmsg_bytes[index+4] = replacement_bytes[new_cost][4]
     return sysmsg_bytes
 
-def safe_open_wb(path):
-    ''' Open "path" for writing, creating any parent directories as needed.
-    '''
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    return open(path, 'wb')
+def output_sysmsg_bytes(new_sysmsg_bytes: bytearray) -> None:
+    sysmsg_table_path = root_path().joinpath("Working", "remastered", "menu", "uk", "sysmsg.bin", "UK_sysmsg.binl")
+    write_bytes(file_path=sysmsg_table_path, data=new_sysmsg_bytes, overwrite=True, create_parents=True)
 
-def output_sysmsg_bytes(new_sysmsg_bytes):
-    with safe_open_wb('./Working/remastered/menu/uk/sysmsg.bin/UK_sysmsg.binl') as file:
-        file.write(new_sysmsg_bytes)
+def output_battle_table(battle_table_bytes) -> None:
+    battle_table_path = root_path().joinpath("Working", "btltbl.bin")
+    write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
 
-def replace_spell_costs_bytes(battle_table_bytes, spell_mp_costs_data, spell_mp_cost_definitions):
+def replace_spell_costs_bytes(battle_table_bytes, spell_mp_costs_data, spell_mp_cost_definitions) -> bytearray:
     for i in range(len(spell_mp_costs_data)):
-        print(f"Index {i}: changing {spell_mp_cost_definitions[i]["Spell"]} to have a cost of {spell_mp_costs_data[i]} at offset {spell_mp_cost_definitions[i]["Offset"]}")
-        battle_table_bytes[int(spell_mp_cost_definitions[i]["Offset"], 16)]     = spell_mp_costs_data[i]%256
-        battle_table_bytes[int(spell_mp_cost_definitions[i]["Offset"], 16) + 1] = spell_mp_costs_data[i]//256
+        # FIX: Multidimensional array swizzling does not work in f-strings in python 3.10, so fixed here.
+        spell_object = spell_mp_cost_definitions[i]
+        print(f"Index {i}: changing {spell_object['Spell']} to have a cost of {spell_mp_costs_data[i]} at offset {spell_object['Offset']}")
+        battle_table_bytes[int(spell_object["Offset"], 16)]     = spell_mp_costs_data[i]%256
+        battle_table_bytes[int(spell_object["Offset"], 16) + 1] = spell_mp_costs_data[i]//256
     return battle_table_bytes
-
-def output_battle_table(battle_table_bytes):
-    with open('./Working/btltbl.bin', mode = 'wb') as file:
-        file.write(battle_table_bytes)
 
 def replace_spell_effectiveness(battle_table_bytes, spell_mp_costs_data, spell_effectiveness_definitions):
     original_spell_costs = [
@@ -125,13 +113,13 @@ def replace_spell_effectiveness(battle_table_bytes, spell_mp_costs_data, spell_e
         battle_table_bytes[int(spell_effectiveness_definitions[i]["Offset"], 16) + 1] = new_effectiveness//256
     return battle_table_bytes
 
-def write_spell_info(settings_file = None, mp_cost_file = None):
+def write_spell_info(settings_file: Path | None = None, mp_cost_file: Path | None = None) -> None:
     settings_data = get_settings_data(settings_file)
     if "randomize_spell_mp_costs" not in settings_data.keys():
         print("Generation is from older AP world, skipping...")
         return
     
-    kh1_data_path = "./Working/"
+    kh1_data_path = root_path().joinpath("Working")
     spell_mp_costs_data = get_spell_mp_costs_data(mp_cost_file)
     spell_mp_cost_definitions = get_spell_mp_cost_definitions()
     

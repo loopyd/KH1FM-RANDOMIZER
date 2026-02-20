@@ -1,71 +1,51 @@
-import os
-import shutil
-import json
+import yaml
 from datetime import datetime
+from typing import Dict
+from pathlib import Path
 
-def get_settings_data(settings_file = None):
-    while not settings_file:
-        settings_file = filedialog.askopenfilename(filetypes =[('JSON', '*.json')], title = "KH1 Randomizer Settings JSON")
-        if not settings_file:
-            print("Error, please select a valid KH1 settings file")
-    with open(settings_file, mode='r') as file:
-        settings_data = json.load(file)
+from helpers import root_path, read_json, list_files_recursive, remove_path, write_plaintext, create_zip
+
+
+def get_settings_data(settings_file: Path | None = None) -> Dict:
+    settings_data = read_json(file_path=settings_file, ask_prompt=True)
     return settings_data
 
-def list_files_recursive(path='.', filenames=[]):
-    for entry in os.listdir(path):
-        full_path = os.path.join(path, entry)
-        if os.path.isdir(full_path):
-            list_files_recursive(full_path)
-        else:
-            filenames.append(str(full_path).replace("\\", "/"))
-    return filenames
 
-def get_mod_yaml_header(seed, slot_name):
+def create_mod_yaml(seed: int, slot_name: str) -> None:
     seed_string = hex(int(str(seed).replace("W", ""))).upper().replace("0X", "")
-    return f"""title: KH1R {slot_name} {seed_string}
-originalAuthor: Gicu
-description: Necessary files for KH1FM Archipelago Randomizer.  For more info - kh1fmrando.com
-dependencies:
-assets:
-"""
-
-def remove_path(files, path):
-    for i in range(len(files)):
-        files[i] = files[i].replace(path, "")
-
-def write_mod_yaml_file(mod_yaml_str):
-    with open("./Working/mod.yml", "w") as f:
-        f.write(mod_yaml_str)
-
-def zip_directory(directory_path, zip_file_path):
-    shutil.make_archive(zip_file_path, 'zip', directory_path)
-
-def create_mod_yaml(seed, slot_name):
-    mod_yaml_str = get_mod_yaml_header(seed, slot_name)
-    directory_path = './Working/'
+    data = {
+        "title": f"KH1R {slot_name} {seed_string}",
+        "originalAuthor": "Gicu",
+        "description": "Necessary files for KH1FM Archipelago Randomizer.  For more info - kh1fmrando.com",
+        "dependencies": [],
+        "assets": []
+    }
+    
+    directory_path = root_path().joinpath("Working")
     files = list_files_recursive(directory_path)
     remove_path(files, directory_path)
     for file in files:
         if file != "mod.yml":
-            mod_yaml_str = mod_yaml_str + """- name: """ + str(file) + """
-  method: copy
-  source:
-  - name: """ + str(file) + """
-"""
-    write_mod_yaml_file(mod_yaml_str)
+            data["assets"].append({
+                "name": str(file),
+                "method": "copy",
+                "source": [{"name": str(file)}]
+            })
+    
+    mod_yaml_path = root_path().joinpath("Working", "mod.yml")
+    mod_yaml_str = yaml.safe_dump(data, sort_keys=False)
+    write_plaintext(file_path=mod_yaml_path, content=mod_yaml_str, overwrite=True, create_parents=True)
 
-def write_mod_zip(settings_file = None):
+
+def write_mod_zip(settings_file=None):
     settings_data = get_settings_data(settings_file)
     now = datetime.now()
     seed = settings_data["seed"]
-    slot_name = ""
-    if "slot_name" in settings_data.keys():
-        slot_name = settings_data["slot_name"]
+    slot_name = settings_data.get("slot_name", "")
     create_mod_yaml(seed, slot_name)
-    directory_to_zip = './Working/'
-    output_zip_file = './Output/mod_' + now.strftime("%Y%m%d%H%M%S")
-    zip_directory(directory_to_zip, output_zip_file)
+    directory_to_zip = root_path().joinpath("Working")
+    output_zip_file = root_path().joinpath('Output', 'mod_' + now.strftime("%Y%m%d%H%M%S") + ".zip")
+    create_zip(zip_file_path=output_zip_file, directory_path=directory_to_zip, overwrite=True)
 
 if __name__=="__main__":
     write_mod_zip()

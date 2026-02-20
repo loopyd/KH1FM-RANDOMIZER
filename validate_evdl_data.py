@@ -1,28 +1,16 @@
-import tkinter as tk
-from tkinter import filedialog
-import csv
-import pprint
+from pathlib import Path
+from typing import Dict, List
+from helpers import get_folder, root_path, read_csv
 
-root = tk.Tk()
-root.withdraw()
 
-def get_kh1_data_path(kh1_data_path = None):
-    while not kh1_data_path:
-        kh1_data_path = filedialog.askdirectory()
-        if not kh1_data_path:
-            print("Error, please select a valid KH1 data path")
-    return kh1_data_path
-
-def get_corrected_evdl_data():
-    with open('./Documentation/KH1FM Documentation - Static Items.csv', mode = 'r') as file:
-        corrected_evdl_data = []
-        corrected_evdl_csv_file_data = csv.DictReader(file)
-        for line in corrected_evdl_csv_file_data:
-            corrected_evdl_data.append(line)
+def get_corrected_evdl_data() -> List[Dict]:
+    evdl_data_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Static Items.csv")
+    corrected_evdl_data = read_csv(file_path=evdl_data_csv_path)
     return corrected_evdl_data
 
-def validate_evdl_data(kh1_data_path = None):
-    kh1_data_path = get_kh1_data_path(kh1_data_path)
+
+def validate_evdl_data(kh1_data_path: Path | None = None) -> None:
+    kh1_data_path = get_folder(folder_path=kh1_data_path, label="KH1 Data Path", ask_prompt=True)
     error = False
     corrected_evdl_data = get_corrected_evdl_data()
     static_item_dict = {}
@@ -36,12 +24,22 @@ def validate_evdl_data(kh1_data_path = None):
         bytes = []
         for file_location in static_item_dict[item]:
             if file_location["Use Corrected File?"] == "N":
-                with open(kh1_data_path + "/" + file_location["File"], mode = 'rb') as data_file:
+                file_path = kh1_data_path.joinpath(file_location["File"])
+                if not file_path.is_file() or not file_path.exists():
+                    print("Error, " + file_location["File"] + " not found in KH1 data path. Check the file name and try again.")
+                    error = True
+                    continue
+                with open(file_path, mode = 'rb') as data_file:
                     data = data_file.read()
                     offset = int(file_location["Offset"],16)
                     bytes.append(hex(data[offset]))
             else:
-                with open("./Corrected EVDLs/" + file_location["File"], mode = 'rb') as data_file:
+                file_path = root_path().joinpath("Corrected EVDLs", file_location["File"])
+                if not file_path.is_file() or not file_path.exists():
+                    print("Error, " + file_location["File"] + " not found in Corrected EVDLs folder. Check the file name and try again.")
+                    error = True
+                    continue
+                with open(file_path, mode = 'rb') as data_file:
                     data = data_file.read()
                     offset = int(file_location["Offset"],16)
                     bytes.append(hex(data[offset]))

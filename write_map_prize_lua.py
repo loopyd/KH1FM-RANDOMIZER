@@ -1,22 +1,21 @@
-import json
+from pathlib import Path
+from typing import Dict
 
 from definitions import filler_item_ids
+from helpers import root_path, read_json, read_plaintext, write_plaintext
 
-def get_seed_json_data(seed_json_file = None):
-    while not seed_json_file:
-        seed_json_file = filedialog.askopenfilename(filetypes =[('JSON', '*.json')], title = "KH1 Randomizer Seed JSON")
-        if not seed_json_file:
-            print("Error, please select a valid KH1 seed file")
-    with open(seed_json_file, mode='r') as file:
-        seed_json_data = json.load(file)
+def get_seed_json_data(seed_json_file: Path | None = None) -> Dict:
+    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
     return seed_json_data
 
-def get_map_prize_template_lua():
-    with open('./Template Luas/1fmRandoMapPrizes.lua', mode = 'r') as file:
-        map_prize_lua_str = file.read()
+
+def get_map_prize_template_lua() -> str:
+    rando_map_prizes_lua_path = root_path().joinpath("Template Luas", "1fmRandoMapPrizes.lua")
+    map_prize_lua_str = read_plaintext(file_path=rando_map_prizes_lua_path)
     return map_prize_lua_str
 
-def update_map_prize_template_lua(map_prize_lua_str, seed_json_data):
+
+def update_map_prize_template_lua(map_prize_lua_str: str, seed_json_data: Dict) -> str:
     map_prize_location_ids = [
         2656600,
         2656601,
@@ -52,15 +51,18 @@ def update_map_prize_template_lua(map_prize_lua_str, seed_json_data):
         map_prize_lua_str = map_prize_lua_str.replace("replace_" + str(map_prize_location_id), str(replace))
     return map_prize_lua_str
 
-def output_map_prize_lua_file(map_prize_lua_str):
-    with open('./Working/scripts/1fmRandoMapPrizes.lua', mode = 'w') as file:
-        file.write(map_prize_lua_str)
 
-def write_map_prize_lua(seed_json_file = None):
+def output_map_prize_lua_file(map_prize_lua_str: str) -> None:
+    map_prize_lua_path = root_path().joinpath("Working", "scripts", "1fmRandoMapPrizes.lua")
+    write_plaintext(file_path=map_prize_lua_path, content=map_prize_lua_str)
+
+
+def write_map_prize_lua(seed_json_file: Path | None = None) -> None:
     seed_json_data = get_seed_json_data(seed_json_file)
     map_prize_lua_str = get_map_prize_template_lua()
     map_prize_lua_str = update_map_prize_template_lua(map_prize_lua_str, seed_json_data)
     output_map_prize_lua_file(map_prize_lua_str)
+
 
 if __name__ == "__main__":
     write_map_prize_lua()
