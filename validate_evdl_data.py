@@ -1,18 +1,13 @@
 from pathlib import Path
-from typing import Dict, List
-from helpers import get_folder, root_path, read_csv
 
-
-def get_corrected_evdl_data() -> List[Dict]:
-    evdl_data_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Static Items.csv")
-    corrected_evdl_data = read_csv(file_path=evdl_data_csv_path)
-    return corrected_evdl_data
+from config import read_data, ResourceType
+from helpers import get_folder
 
 
 def validate_evdl_data(kh1_data_path: Path | None = None) -> None:
     kh1_data_path = get_folder(folder_path=kh1_data_path, label="KH1 Data Path", ask_prompt=True)
     error = False
-    corrected_evdl_data = get_corrected_evdl_data()
+    corrected_evdl_data = read_data(kind=ResourceType.CSV, key="evdl_locations")
     static_item_dict = {}
     use_corrected_evdl_dict = {}
     for file_location in corrected_evdl_data:
@@ -25,24 +20,23 @@ def validate_evdl_data(kh1_data_path: Path | None = None) -> None:
         for file_location in static_item_dict[item]:
             if file_location["Use Corrected File?"] == "N":
                 file_path = kh1_data_path.joinpath(file_location["File"])
-                if not file_path.is_file() or not file_path.exists():
+                try:
+                    data = read_data(kind=ResourceType.BIN, path=file_path, ask_prompt=False)
+                except FileNotFoundError:
                     print("Error, " + file_location["File"] + " not found in KH1 data path. Check the file name and try again.")
                     error = True
                     continue
-                with open(file_path, mode = 'rb') as data_file:
-                    data = data_file.read()
-                    offset = int(file_location["Offset"],16)
-                    bytes.append(hex(data[offset]))
+                offset = int(file_location["Offset"],16)
+                bytes.append(hex(data[offset]))
             else:
-                file_path = root_path().joinpath("Corrected EVDLs", file_location["File"])
-                if not file_path.is_file() or not file_path.exists():
+                try:
+                    data = read_data(kind=ResourceType.BIN, path_parts=("Corrected EVDLs", file_location["File"]), ask_prompt=False)
+                except FileNotFoundError:
                     print("Error, " + file_location["File"] + " not found in Corrected EVDLs folder. Check the file name and try again.")
                     error = True
                     continue
-                with open(file_path, mode = 'rb') as data_file:
-                    data = data_file.read()
-                    offset = int(file_location["Offset"],16)
-                    bytes.append(hex(data[offset]))
+                offset = int(file_location["Offset"],16)
+                bytes.append(hex(data[offset]))
         if bytes.count(bytes[0]) != len(bytes):
             print("ERROR! Check " + item + " again!")
             print(bytes)

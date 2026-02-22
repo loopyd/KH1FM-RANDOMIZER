@@ -2,7 +2,8 @@ import shutil
 from typing import Dict, List
 from pathlib import Path
 
-from helpers import get_folder, root_path, read_csv
+from config import ResourceType, read_data
+from helpers import get_folder, root_path
 
 
 def write_static_files() -> None:
@@ -44,7 +45,7 @@ def write_files_to_working(kh1_data_path: Path | None = None) -> None:
     csv_lines: List[Dict] = []
     for file in list_definition_files_in_current_directory():
         file_path = root_path().joinpath("Documentation", file)
-        csv_lines.extend(read_csv(file_path=file_path))
+        csv_lines.extend(read_data(ResourceType.CSV, path=file_path))
     copy_src_kh1_files_to_output(kh1_data_path, csv_lines)
     write_static_files()
 

@@ -1,18 +1,7 @@
 from pathlib import Path
 
-from helpers import read_plaintext, root_path, write_plaintext, read_json
-
-
-
-def get_destiny_islands_lua_str() -> str:
-    rando_destiny_islands_lua_path = root_path().joinpath("Template Luas", "1fmRandoAllowDestinyIslands.lua")
-    destiny_islands_lua_str = read_plaintext(file_path=rando_destiny_islands_lua_path)
-    return destiny_islands_lua_str
-
-
-def output_destiny_islands_lua_file(destiny_islands_lua_str: str) -> None:
-    rando_destiny_islands_lua_path = root_path().joinpath("Working", "scripts", "1fmRandoAllowDestinyIslands.lua")
-    write_plaintext(file_path=rando_destiny_islands_lua_path, data=destiny_islands_lua_str, overwrite=True, create_parents=True)
+from config import ResourceType, read_data, write_data
+from helpers import boolify
 
 
 def update_destiny_islands_lua_str(destiny_islands_lua_str: str, day_2_materials: int, homecoming_materials: int) -> str:
@@ -22,13 +11,13 @@ def update_destiny_islands_lua_str(destiny_islands_lua_str: str, day_2_materials
 
 
 def write_destiny_islands_lua(settings_file: Path | None = None) -> None:
-    settings_data = read_json(file_path=settings_file, ask_prompt=False)
-    if settings_data["destiny_islands"]:
-        day_2_materials = settings_data["day_2_materials"]
-        homecoming_materials = settings_data["homecoming_materials"]
-        destiny_islands_lua_str = get_destiny_islands_lua_str()
+    settings_data = read_data(kind=ResourceType.JSON, path=settings_file, ask_prompt=False)
+    if boolify(settings_data.get("destiny_islands", False)):
+        day_2_materials = settings_data.get("day_2_materials", 0)
+        homecoming_materials = settings_data.get("homecoming_materials", 0)
+        destiny_islands_lua_str = read_data(kind=ResourceType.LUA, key="template_destiny_islands")
         destiny_islands_lua_str = update_destiny_islands_lua_str(destiny_islands_lua_str, day_2_materials, homecoming_materials)
-        output_destiny_islands_lua_file(destiny_islands_lua_str)
+        write_data(kind=ResourceType.LUA, data=destiny_islands_lua_str, key="output_destiny_islands", overwrite=True, create_parents=True)
 
 
 if __name__ == "__main__":

@@ -1,21 +1,9 @@
 from pathlib import Path
 from typing import Dict, List
 
+from config import ResourceType, read_data, write_data
 from definitions import keyblade_list
 from write_item_descriptions import replace_specific_item_description
-from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
-
-
-def get_battle_table(kh1_data_path: Path) -> bytearray:
-    battle_table_path = kh1_data_path.joinpath("btltbl.bin")
-    battle_data = read_bytes(battle_table_path)
-    return battle_data
-
-
-def get_weapon_stat_definitions() -> List[Dict]:
-    weapon_stats_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Weapon Stats.csv")
-    weapon_definitions = read_csv(file_path=weapon_stats_csv_path)
-    return weapon_definitions
 
 
 def get_weapon_byte_offset(weapon_definitions: List[Dict], stat: str, keyblade: str, user: str):
@@ -73,18 +61,12 @@ def write_weapon_stats(battle_table_data: bytearray, weapon_definitions: List[Di
     return battle_table_data
 
 
-def output_battle_table(battle_table_bytes: bytearray) -> None:
-    battle_table_path = root_path().joinpath("Working", "btltbl.bin")
-    write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
-
-
-def write_keyblade_stats(seed_json_file = None):
-    kh1_data_path = root_path().joinpath("Working")
-    keyblade_stats_data = read_json(file_path=seed_json_file, ask_prompt=False)
-    battle_table_bytes = get_battle_table(kh1_data_path)
-    weapon_definitions = get_weapon_stat_definitions()
-    battle_table_bytes = write_weapon_stats(battle_table_bytes, weapon_definitions, keyblade_stats_data)
-    output_battle_table(battle_table_bytes)
+def write_keyblade_stats(seed_json_file: Path | None = None) -> None:
+    seed_json_file = read_data(kind=ResourceType.JSON, path=seed_json_file, ask_prompt=True)
+    battle_table_bytes = read_data(kind=ResourceType.BIN, key="battle_table")
+    weapon_definitions = read_data(kind=ResourceType.CSV, key="weapon_stat_definitions")
+    battle_table_bytes = write_weapon_stats(battle_table_bytes, weapon_definitions, seed_json_file)
+    write_data(kind=ResourceType.BIN, data=battle_table_bytes, key="battle_table", overwrite=True, create_parents=True)
 
 
 if __name__ == "__main__":

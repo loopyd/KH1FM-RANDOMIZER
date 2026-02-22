@@ -2,30 +2,7 @@ import json
 from typing import Dict, List, Tuple
 from pathlib import Path
 
-from helpers import read_bytes, read_json, root_path, read_csv, read_plaintext, write_plaintext, write_bytes
-
-
-def get_chest_definitions() -> List[Dict]:
-    chest_definitions_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Chest Items.csv")
-    chest_definitions = read_csv(file_path=chest_definitions_csv_path)
-    return chest_definitions
-
-
-def get_rewards_definitions() -> List[Dict]:
-    reward_definitions_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Battle Table Reward Items.csv")
-    reward_definitions = read_csv(file_path=reward_definitions_csv_path)
-    for reward in reward_definitions:
-        if reward["Chest Reference"] == "Link":
-            reward["AP Location ID"] = None
-        if reward["AP Location ID"] == "":
-            reward["AP Location ID"] = None
-    return reward_definitions
-
-
-def get_battle_table(kh1_data_path: Path) -> bytearray:
-    battle_table_path = kh1_data_path.joinpath("btltbl.bin")
-    battle_data = read_bytes(battle_table_path)
-    return battle_data
+from config import ResourceType, read_data, write_data
 
 
 def get_replacement_short_item(item_index: int) -> int:
@@ -103,11 +80,6 @@ def get_all_reward_replacements(reward_definitions: List[Dict], seed_json_data: 
     return replacements
 
 
-def get_chest_template_lua() -> str:
-    chest_template_path = root_path().joinpath("Template Luas", "1fmRandoChests.lua")
-    chests_lua_str = read_plaintext(file_path=chest_template_path)
-    return chests_lua_str
-
 
 def update_chest_lua(chests_lua_str: str, replacements: Dict) -> str:
     return chests_lua_str.replace("chests = {}", "chests = " + json.dumps(replacements).replace("{\"", "{[").replace("\":", "] =").replace(", \"", ", ["))
@@ -120,29 +92,18 @@ def update_battle_table(battle_table_bytes: bytearray, replacements: Dict) -> by
     return battle_table_bytes
 
 
-def output_chest_lua_file(chest_lua_str: str) -> None:
-    rando_chest_lua_path = root_path().joinpath("Working", "scripts", "1fmRandoChests.lua")
-    write_plaintext(file_path=rando_chest_lua_path, data=chest_lua_str, overwrite=True, create_parents=True)    
-
-
-def output_battle_table(battle_table_bytes: bytearray) -> None:
-    rando_battle_table_path = root_path().joinpath("Working", "btltbl.bin")
-    write_bytes(file_path=rando_battle_table_path, data=bytes(battle_table_bytes), overwrite=True, create_parents=True)
-
-
-def write_chests_and_rewards(seed_json_file = None) -> None:
-    kh1_data_path = root_path().joinpath("Working")
-    chest_definitions = get_chest_definitions()
-    reward_definitions = get_rewards_definitions()
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
+def write_chests_and_rewards(seed_json_file: Path | None = None) -> None:
+    chest_definitions = read_data(kind=ResourceType.CSV, key="chest_definitions")
+    reward_definitions = read_data(kind=ResourceType.CSV, key="rewards_definitions")
+    seed_json_data = read_data(kind=ResourceType.JSON, path=seed_json_file, ask_prompt=False)
     chest_replacements, reward_definitions = get_all_chest_replacements(chest_definitions, reward_definitions, seed_json_data)
     reward_replacements = get_all_reward_replacements(reward_definitions, seed_json_data)
-    chest_template_lua = get_chest_template_lua()
+    chest_template_lua = read_data(kind=ResourceType.LUA, key="template_chest")
     chest_lua = update_chest_lua(chest_template_lua, chest_replacements)
-    output_chest_lua_file(chest_lua)
-    battle_table_bytes = get_battle_table(kh1_data_path)
+    write_data(kind=ResourceType.LUA, data=chest_lua, key="output_chest", overwrite=True, create_parents=True)
+    battle_table_bytes = read_data(kind=ResourceType.BIN, key="battle_table")
     updated_battle_table = update_battle_table(battle_table_bytes, reward_replacements)
-    output_battle_table(updated_battle_table)
+    write_data(kind=ResourceType.BIN, data=updated_battle_table, key="battle_table", overwrite=True, create_parents=True)
 
 if __name__=="__main__":
     write_chests_and_rewards()

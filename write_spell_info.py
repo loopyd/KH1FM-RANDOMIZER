@@ -1,35 +1,6 @@
-from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
+from config import ResourceType, read_data, write_data
 from pathlib import Path
-from typing import Dict, List
 
-
-def get_spell_mp_cost_definitions() -> List[Dict]:
-    spell_cost_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Spell MP Cost.csv")
-    spell_mp_cost_definitions = read_csv(spell_cost_csv_path)
-    return spell_mp_cost_definitions
-
-def get_spell_effectiveness_definitions() -> List[Dict]:
-    spell_effectiveness_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Spell Effectiveness.csv")
-    spell_effectiveness_definitions = read_csv(spell_effectiveness_csv_path)
-    return spell_effectiveness_definitions
-
-def get_spell_mp_costs_data(spell_mp_costs_json_file: Path | None = None) -> List[int]:
-    try:
-        spell_mp_costs_data = read_json(file_path=spell_mp_costs_json_file, ask_prompt=True)
-        return spell_mp_costs_data
-    except Exception as e:
-         print(f"Error reading spell MP costs file: {e}")
-         raise e
-
-def get_battle_table(kh1_data_path: Path) -> bytearray:
-    battle_table_path = kh1_data_path.joinpath("btltbl.bin")
-    battle_table_bytes = read_bytes(battle_table_path)
-    return battle_table_bytes
-
-def get_sysmsg_bytes(kh1_data_path: Path) -> bytearray:
-    sysmsg_path = kh1_data_path.joinpath("remastered", "menu", "uk", "sysmsg.bin", "UK_sysmsg.binl")
-    sysmsg_bytes = read_bytes(sysmsg_path)
-    return sysmsg_bytes
 
 def replace_sysmsgs(sysmsg_bytes, spell_mp_costs_data):
     replacement_bytes = {
@@ -72,14 +43,6 @@ def replace_sysmsgs(sysmsg_bytes, spell_mp_costs_data):
         sysmsg_bytes[index+4] = replacement_bytes[new_cost][4]
     return sysmsg_bytes
 
-def output_sysmsg_bytes(new_sysmsg_bytes: bytearray) -> None:
-    sysmsg_table_path = root_path().joinpath("Working", "remastered", "menu", "uk", "sysmsg.bin", "UK_sysmsg.binl")
-    write_bytes(file_path=sysmsg_table_path, data=new_sysmsg_bytes, overwrite=True, create_parents=True)
-
-def output_battle_table(battle_table_bytes) -> None:
-    battle_table_path = root_path().joinpath("Working", "btltbl.bin")
-    write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
-
 def replace_spell_costs_bytes(battle_table_bytes, spell_mp_costs_data, spell_mp_cost_definitions) -> bytearray:
     for i in range(len(spell_mp_costs_data)):
         # FIX: Multidimensional array swizzling does not work in f-strings in python 3.10, so fixed here.
@@ -106,30 +69,29 @@ def replace_spell_effectiveness(battle_table_bytes, spell_mp_costs_data, spell_e
     return battle_table_bytes
 
 def write_spell_info(settings_file: Path | None = None, mp_cost_file: Path | None = None) -> None:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
+    settings_data = read_data(kind=ResourceType.JSON, path=settings_file, ask_prompt=True)
     if "randomize_spell_mp_costs" not in settings_data.keys():
         print("Generation is from older AP world, skipping...")
         return
     
-    kh1_data_path = root_path().joinpath("Working")
-    spell_mp_costs_data = get_spell_mp_costs_data(mp_cost_file)
-    spell_mp_cost_definitions = get_spell_mp_cost_definitions()
+    spell_mp_costs_data = read_data(kind=ResourceType.JSON, path=mp_cost_file, ask_prompt=True)
+    spell_mp_cost_definitions = read_data(kind=ResourceType.CSV, key="spell_mp_cost_definitions")
     
     # Handle spell descriptions
-    sysmsg_bytes = get_sysmsg_bytes(kh1_data_path)
+    sysmsg_bytes = read_data(kind=ResourceType.BIN, key="sysmsg")
     new_sysmsg_bytes = replace_sysmsgs(sysmsg_bytes, spell_mp_costs_data)
-    output_sysmsg_bytes(bytes(new_sysmsg_bytes))
+    write_data(kind=ResourceType.BIN, data=bytes(new_sysmsg_bytes), key="sysmsg", overwrite=True, create_parents=True)
     
     # Handle spell costs
-    battle_table_bytes = get_battle_table(kh1_data_path)
+    battle_table_bytes = read_data(kind=ResourceType.BIN, key="battle_table")
     battle_table_bytes = replace_spell_costs_bytes(battle_table_bytes, spell_mp_costs_data, spell_mp_cost_definitions)
     
     # Handle spell potency
     if settings_data["scaling_spell_potency"]:
-        spell_effectiveness_definitions = get_spell_effectiveness_definitions()
+        spell_effectiveness_definitions = read_data(kind=ResourceType.CSV, key="spell_effectiveness_definitions")
         battle_table_bytes = replace_spell_effectiveness(battle_table_bytes, spell_mp_costs_data, spell_effectiveness_definitions)
     
-    output_battle_table(battle_table_bytes)
+    write_data(kind=ResourceType.BIN, data=battle_table_bytes, key="battle_table", overwrite=True, create_parents=True)
 
 if __name__ == "__main__":
     write_spell_info()

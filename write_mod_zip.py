@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import yaml
 from datetime import datetime
 
-from helpers import root_path, read_json, list_files_recursive, remove_path, write_plaintext, create_zip
+from config import ResourceType, read_data, write_data
+from helpers import root_path, list_files_recursive, remove_path, create_zip
 
 
 def create_mod_yaml(seed: int, slot_name: str) -> None:
@@ -27,11 +30,11 @@ def create_mod_yaml(seed: int, slot_name: str) -> None:
     
     mod_yaml_path = root_path().joinpath("Working", "mod.yml")
     mod_yaml_str = yaml.safe_dump(data, sort_keys=False)
-    write_plaintext(file_path=mod_yaml_path, content=mod_yaml_str, overwrite=True, create_parents=True)
+    write_data(ResourceType.PLAINTEXT, mod_yaml_str, path=mod_yaml_path, overwrite=True, create_parents=True)
 
 
-def write_mod_zip(settings_file=None):
-    settings_data = read_json(file_path=settings_file, ask_prompt=False)
+def write_mod_zip(settings_file: Path | None = None) -> None:
+    settings_data = read_data(ResourceType.JSON, path=settings_file, ask_prompt=True)
     now = datetime.now()
     seed = settings_data["seed"]
     slot_name = settings_data.get("slot_name", "")

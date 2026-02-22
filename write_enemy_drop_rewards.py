@@ -1,21 +1,7 @@
-from pathlib import Path
 from typing import Dict, List
 
+from config import ResourceType, read_data, write_data
 from definitions import filler_item_ids
-from helpers import read_bytes, root_path, read_csv, write_bytes
-
-
-def get_enemy_drop_definitions() -> List[Dict]:
-    enemy_drop_definitions_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Enemy Stats and Drops.csv")
-    enemy_drop_definitions = read_csv(file_path=enemy_drop_definitions_csv_path)
-    return enemy_drop_definitions
-
-
-def get_enemy_data(kh1_data_path: Path, file_name: str) -> bytearray:
-    data_path = kh1_data_path.joinpath(file_name)
-    enemy_data_bytes = read_bytes(data_path)
-    return enemy_data_bytes
-
 
 def remove_enemy_synth_drops(enemy_bytes: bytearray, enemy_drop_definitions: List[Dict]) -> bytearray:
     for enemy_drop_definition in enemy_drop_definitions:
@@ -33,12 +19,6 @@ def remove_enemy_synth_drops(enemy_bytes: bytearray, enemy_drop_definitions: Lis
     return enemy_bytes
 
 
-
-def write_enemy_mdls(enemy_bytes: bytearray, file_name: str) -> None:
-    enemy_mdl_path = root_path().joinpath("Working", file_name)
-    write_bytes(file_path=enemy_mdl_path, data=enemy_bytes, overwrite=True, create_parents=True)
-
-
 def sort_enemy_drop_definitions(enemy_drop_definitions: List[Dict]) -> Dict:
     sorted_enemy_drop_definitions = {}
     for enemy_drop_definition in enemy_drop_definitions:
@@ -49,13 +29,13 @@ def sort_enemy_drop_definitions(enemy_drop_definitions: List[Dict]) -> Dict:
 
 
 def write_enemy_drop_rewards() -> None:
-    kh1_data_path = root_path().joinpath("Working")
-    enemy_drop_definitions = get_enemy_drop_definitions()
+    enemy_drop_definitions = read_data(kind=ResourceType.CSV, key="enemy_drop_definitions")
     sorted_enemy_drop_definitions = sort_enemy_drop_definitions(enemy_drop_definitions)
     for file in sorted_enemy_drop_definitions.keys():
-        enemy_bytes = get_enemy_data(kh1_data_path, file)
+        enemy_bytes = read_data(kind=ResourceType.BIN, path_parts=("Working", file))
         enemy_bytes = remove_enemy_synth_drops(enemy_bytes, sorted_enemy_drop_definitions[file])
-        write_enemy_mdls(enemy_bytes, file)
+        write_data(kind=ResourceType.BIN, data=enemy_bytes, path_parts=("Working", file), overwrite=True, create_parents=True)
+
 
 
 if __name__=="__main__":

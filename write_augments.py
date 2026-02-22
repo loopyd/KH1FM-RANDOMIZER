@@ -1,19 +1,9 @@
 from pathlib import Path
 
+from config import ResourceType, read_data, write_data
 from definitions import augment_strings
 from write_item_descriptions import replace_specific_item_description
-from helpers import read_json, root_path, read_plaintext, write_plaintext
-
-
-def get_augments_lua_str() -> str:
-    rando_augment_lua_path = root_path().joinpath("Template Luas", "1fmRandoHandleAugments.lua")
-    augments_lua_string = read_plaintext(file_path=rando_augment_lua_path)
-    return augments_lua_string
-
-
-def output_augments_lua_file(augments_lua_string: str) -> None:
-    rando_augment_lua_path = root_path().joinpath("Working", "scripts", "1fmRandoHandleAugments.lua")
-    write_plaintext(file_path=rando_augment_lua_path, data=augments_lua_string, overwrite=True, create_parents=True)
+from helpers import boolify
 
 
 def update_augment_lua(augments_lua_string: str, seed_json_data: dict) -> str:
@@ -80,18 +70,18 @@ def get_new_spell_effectiveness(spell_mp_costs_data):
     return spell_effectiveness
 
 
-def write_augments(seed_json_file: Path | None = None, settings_file: Path | None = None, mp_cost_file: Path | None = None):
-    settings_data = read_json(file_path=settings_file, ask_prompt=False)
-    if settings_data.get("accessory_augments"):
-        augments_lua_string = get_augments_lua_str()
-        if settings_data.get("randomize_spell_mp_costs", "off") != "off":
-            mp_costs = read_json(file_path=mp_cost_file, ask_prompt=False)
+def write_augments(seed_json_file: Path | None = None, settings_file: Path | None = None, mp_cost_file: Path | None = None) -> None:
+    settings_data = read_data(kind=ResourceType.JSON, path=settings_file, ask_prompt=True)
+    if boolify(settings_data.get("accessory_augments")):
+        augments_lua_string = read_data(kind=ResourceType.LUA, key="template_augments")
+        if boolify(settings_data.get("randomize_spell_mp_costs", False)):
+            mp_costs = read_data(kind=ResourceType.JSON, path=mp_cost_file, ask_prompt=True)
             augments_lua_string = update_augment_mp_costs(augments_lua_string, mp_costs)
-            if settings_data.get("scaling_spell_potency"):
+            if boolify(settings_data.get("scaling_spell_potency", False)):
                 augments_lua_string = update_augment_spell_effectiveness(augments_lua_string, mp_costs)
-        seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
+        seed_json_data = read_data(kind=ResourceType.JSON, path=seed_json_file, ask_prompt=True)
         augments_lua_string = update_augment_lua(augments_lua_string, seed_json_data)
-        output_augments_lua_file(augments_lua_string)
+        write_data(kind=ResourceType.LUA, data=augments_lua_string, key="output_augments", overwrite=True, create_parents=True)
         update_accessory_descriptions(seed_json_data)
 
 if __name__=="__main__":

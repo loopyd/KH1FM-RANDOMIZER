@@ -1,17 +1,12 @@
 from pathlib import Path
 
-from helpers import root_path, read_json, write_plaintext
-
-
-def output_seed(seed: str) -> None:
-    output_path = root_path().joinpath("Working", "scripts", "randofiles", "seed.txt")
-    write_plaintext(file_path=output_path, content=seed, overwrite=True, create_parents=True)
+from config import ResourceType, read_data, write_data
 
 
 def write_seed(settings_file: Path | None = None) -> None:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
+    settings_data = read_data(kind=ResourceType.JSON, path=settings_file, ask_prompt=True)
     seed = settings_data["seed"]
-    output_seed(seed)
+    write_data(kind=ResourceType.PLAINTEXT, data=seed, key="seed", overwrite=True, create_parents=True)
 
 
 if __name__ == "__main__":

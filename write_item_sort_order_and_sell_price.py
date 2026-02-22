@@ -1,14 +1,9 @@
-from typing import Dict, List
+from typing import Dict
 from pathlib import Path
 
+from config import ResourceType, read_data, write_data
 from definitions import sort_order, filler_item_ids
-from helpers import root_path, read_bytes, write_bytes, read_csv, read_json
 
-
-def get_battle_table(kh1_data_path: Path) -> bytearray:
-    battle_table_path = kh1_data_path.joinpath("btltbl.bin")
-    battle_table_bytes = read_bytes(file_path=battle_table_path)
-    return battle_table_bytes
 
 #def write_item_csv():
 #    kh1_data_path = "./Working/"
@@ -122,21 +117,9 @@ def get_battle_table(kh1_data_path: Path) -> bytearray:
 #       df.to_csv("Battle Table Items.csv", index=False, quoting=csv.QUOTE_ALL)
 
 
-def get_battle_table_item_definitions() -> List[Dict]:
-    battle_table_defintions_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Battle Table Items.csv")
-    battle_table_item_definitions = read_csv(file_path=battle_table_defintions_csv_path)
-    return battle_table_item_definitions
-
-
-def output_battle_table(battle_table_bytes: bytearray) -> None:
-    battle_table_path = root_path().joinpath("Working", "btltbl.bin")
-    write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
-
-
 def write_item_sort_order() -> None:
-    kh1_data_path = root_path().joinpath("Working")
-    battle_table_bytes = get_battle_table(kh1_data_path)
-    battle_table_item_definitions = get_battle_table_item_definitions()
+    battle_table_bytes = read_data(ResourceType.BIN, key="battle_table")
+    battle_table_item_definitions = read_data(ResourceType.CSV, "battle_table_item_definitions")
     for battle_table_item_definition in battle_table_item_definitions:
         if battle_table_item_definition["Notes"] == "Sort Order":
             offset = int(battle_table_item_definition["Offset"], 16)
@@ -146,13 +129,12 @@ def write_item_sort_order() -> None:
             battle_table_bytes[offset + 1] = replacement_byte_array[1]
             battle_table_bytes[offset + 2] = replacement_byte_array[2]
             battle_table_bytes[offset + 3] = replacement_byte_array[3]
-    output_battle_table(battle_table_bytes)
+    write_data(ResourceType.BIN, battle_table_bytes, "battle_table", overwrite=True, create_parents=True)
 
 
 def write_item_sell_price() -> None:
-    kh1_data_path = root_path().joinpath("Working")
-    battle_table_bytes = get_battle_table(kh1_data_path)
-    battle_table_item_definitions = get_battle_table_item_definitions()
+    battle_table_bytes = read_data(ResourceType.BIN, key="battle_table")
+    battle_table_item_definitions = read_data(ResourceType.CSV, "battle_table_item_definitions")
     for battle_table_item_definition in battle_table_item_definitions:
         if battle_table_item_definition["Notes"] == "Sell Price":
             if int(battle_table_item_definition["Item Index"]) not in filler_item_ids:
@@ -161,13 +143,12 @@ def write_item_sell_price() -> None:
                 replacement_byte_array = replacement.to_bytes(2, byteorder = "little")
                 battle_table_bytes[offset] = replacement_byte_array[0]
                 battle_table_bytes[offset + 1] = replacement_byte_array[1]
-    output_battle_table(battle_table_bytes)
+    write_data(ResourceType.BIN, battle_table_bytes, "battle_table", overwrite=True, create_parents=True)
 
 
 def write_item_buy_price(new_prices: Dict[int, int]) -> None:
-    kh1_data_path = root_path().joinpath("Working")
-    battle_table_bytes = get_battle_table(kh1_data_path)
-    battle_table_item_definitions = get_battle_table_item_definitions()
+    battle_table_bytes = read_data(ResourceType.BIN, key="battle_table")
+    battle_table_item_definitions = read_data(ResourceType.CSV, "battle_table_item_definitions")
     for battle_table_item_definition in battle_table_item_definitions:
         if battle_table_item_definition["Notes"] == "Buy Price":
             if int(battle_table_item_definition["Item Index"]) in new_prices.keys():
@@ -176,15 +157,15 @@ def write_item_buy_price(new_prices: Dict[int, int]) -> None:
                 replacement_byte_array = replacement.to_bytes(2, byteorder = "little")
                 battle_table_bytes[offset] = replacement_byte_array[0]
                 battle_table_bytes[offset + 1] = replacement_byte_array[1]
-    output_battle_table(battle_table_bytes)
+    write_data(ResourceType.BIN, battle_table_bytes, "battle_table", overwrite=True, create_parents=True)
 
 
 def write_item_sort_order_and_sell_price(settings_file: Path | None = None) -> None:
-    settings_data = read_json(file_path=settings_file, ask_prompt=False)
+    settings_data = read_data(ResourceType.JSON, path=settings_file, ask_prompt=True)
     new_prices = {}
     new_prices[4] = 400 # Elixir added for WL flowers
-    new_prices[254] = settings_data["mythril_price"]
-    new_prices[255] = settings_data["orichalcum_price"]
+    new_prices[254] = settings_data.get("mythril_price")         # TODO: Default Mythril Price
+    new_prices[255] = settings_data.get("orichalcum_price")     # TODO: Default Orichalcum Price
     write_item_sort_order()
     write_item_sell_price()
     write_item_buy_price(new_prices)

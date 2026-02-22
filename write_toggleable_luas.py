@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from config import APVersion, get_ap_version
-from helpers import root_path, read_json, read_plaintext, write_plaintext
+from helpers import boolify
+from config import APVersion, ResourceType, get_ap_version, read_data, write_data
 
 lua_map = {
     APVersion.AP_MAIN: {
@@ -35,24 +35,13 @@ lua_map = {
 }
 
 
-def get_lua_str(lua_file_name: Path) -> str:
-    lua_path = root_path().joinpath("Template Luas", lua_file_name)
-    lua_str = read_plaintext(file_path=lua_path)
-    return lua_str
-
-
-def output_lua_file(lua_str: str, lua_file_name: Path) -> None:
-    lua_path = root_path().joinpath("Working", "scripts", lua_file_name)
-    write_plaintext(file_path=lua_path, data=lua_str, overwrite=True, create_parents=True)
-
-
 def write_toggleable_luas(settings_file: Path | None = None) -> None:
-    settings_data = read_json(file_path=settings_file, ask_prompt=True)
+    settings_data = read_data(ResourceType.JSON, path=settings_file, ask_prompt=True)
     version = get_ap_version(settings_data)
     for key in lua_map[version].keys():
-        if settings_data[key]:
-            lua_str = get_lua_str(lua_map[version][key])
-            output_lua_file(lua_str, lua_map[version][key])
+        if boolify(settings_data[key]):
+            lua_str = read_data(kind=ResourceType.LUA, path_parts=("Template Luas", str(lua_map[version][key])))
+            write_data(kind=ResourceType.LUA, data=lua_str, path_parts=("Working", "scripts", str(lua_map[version][key])), overwrite=True, create_parents=True)
 
 
 if __name__ == "__main__":

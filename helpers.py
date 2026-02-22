@@ -201,18 +201,22 @@ def convert_byte_array_to_string(byte_array: bytes) -> str:
     return output_string[:-1]
 
 
-def boolify(v: str) -> bool | str:
+def boolify(v: str | int | bool | None) -> bool:
     """
-    Converts "Yes"/"No" strings to boolean True/False, leaves other values unchanged.
+    Converts all primative types of "Yes" and "No" to boolean True and False respectively. If the input is already a boolean, it is returned as is. If the input is an integer, it is converted to boolean based on whether it is non-zero. If the input is None, it returns False. If the input does not match any of these cases, it is returned unchanged.
     
     Args:
-        v (str): The value to convert.
+        v (str | int | bool | None): The value to convert.
         
     Returns:
-        bool or str: The converted boolean value if input is "Yes" or "No", otherwise returns the original value.
+        bool: The converted boolean value if input is "Yes" or "No", otherwise returns the original value.
     """
-    if isinstance(v, str) and v.lower() in ("yes", "no", "true", "false"):
-        return v.lower() == "yes"
+    if isinstance(v, str) and v.lower() in ("yes", "no", "true", "false", "on", "off"):
+        return v.lower() in ("yes", "true", "on")
+    if isinstance(v, int):
+        return v != 0
+    if v is None:
+        return False
     return v
 
 

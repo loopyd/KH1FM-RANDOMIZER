@@ -1,26 +1,8 @@
 from pathlib import Path
 from typing import Dict, List
 
+from config import ResourceType, read_data, write_data
 from definitions import sora_ability_item_ids
-from helpers import root_path, read_csv, read_json, read_bytes, write_bytes
-
-
-def get_level_up_stats_definitions() -> List[Dict]:
-    battle_table_sora_level_up_stats_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Battle Table Sora Level Up Stats.csv")
-    level_up_stats_definitions = read_csv(file_path=battle_table_sora_level_up_stats_csv_path)
-    return level_up_stats_definitions
-
-
-def get_level_up_abilities_definitions() -> List[Dict]:
-    level_up_abilities_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Battle Table Sora Level Up Abilities.csv")
-    level_up_abilities_definitions = read_csv(file_path=level_up_abilities_csv_path)
-    return level_up_abilities_definitions
-
-
-def get_battle_table(kh1_data_path: Path) -> bytearray:
-    battle_table_path = kh1_data_path.joinpath("btltbl.bin")
-    battle_data = read_bytes(battle_table_path)
-    return battle_data
 
 
 def update_battle_table(battle_table_bytes: bytearray, replacements: Dict[int, int]) -> bytearray:
@@ -56,20 +38,14 @@ def get_battle_table_replacements(level_up_stats_definitions: List[Dict], level_
     return replacements
 
 
-def output_battle_table(battle_table_bytes: bytearray) -> None:
-    battle_table_path = root_path().joinpath("Working", "btltbl.bin")
-    write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
-    
-
 def write_level_up_rewards(seed_json_file: Path | None = None) -> None:
-    kh1_data_path = root_path().joinpath("Working")
-    level_up_abilities_definitions = get_level_up_abilities_definitions()
-    level_up_stats_definitions = get_level_up_stats_definitions()
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
+    level_up_abilities_definitions = read_data(kind=ResourceType.CSV, key="level_up_abilities_definitions")
+    level_up_stats_definitions = read_data(kind=ResourceType.CSV, key="level_up_stats_definitions")
+    seed_json_data = read_data(kind=ResourceType.JSON, path=seed_json_file, ask_prompt=False)
     replacements = get_battle_table_replacements(level_up_stats_definitions, level_up_abilities_definitions, seed_json_data)
-    battle_table_bytes = get_battle_table(kh1_data_path)
+    battle_table_bytes = read_data(kind=ResourceType.BIN, key="battle_table")
     battle_table_bytes = update_battle_table(battle_table_bytes, replacements)
-    output_battle_table(battle_table_bytes)
+    write_data(kind=ResourceType.BIN, data=battle_table_bytes, key="battle_table", overwrite=True, create_parents=True)
 
 
 if __name__ == "__main__":

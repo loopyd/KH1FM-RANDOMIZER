@@ -7,7 +7,7 @@ import subprocess
 import re
 from pathlib import Path
 
-from helpers import customize_gooey_window, customize_gooey_window_async, root_path, copy_and_replace, clear_folder
+from helpers import boolify, customize_gooey_window, customize_gooey_window_async, root_path, copy_and_replace, clear_folder
 from config import read_presets, write_presets, get_theme_color
 
 # Handle Splash Screen
@@ -114,17 +114,12 @@ def main():
     if settings_file is None or not Path(settings_file).is_file() or not Path(settings_file).exists():
         FileNotFoundError(f"Error: {settings_file} is not a valid file, or does not exist.")
     
-    replace_ap_world = getattr(args, "replace_ap_world")
-    if replace_ap_world not in ["Yes", "No"]:
-        ValueError("Error: replace_ap_world must be either \"Yes\" or \"No\".")
-        
-    clean_players_folder = getattr(args, "clean_players_folder")
-    if clean_players_folder not in ["Yes", "No"]:
-        ValueError("Error: clean_players_folder must be either \"Yes\" or \"No\".")
-        
+    replace_ap_world = getattr(args, "replace_ap_world", False)
+    clean_players_folder = getattr(args, "clean_players_folder", False)
+
     write_presets("seed", args)
-    handle_replacing_ap_world(archipelago_directory, replace_ap_world == "Yes")
-    move_settings_file_to_players_folder(archipelago_directory, settings_file, clean_players_folder == "Yes")
+    handle_replacing_ap_world(archipelago_directory, boolify(replace_ap_world))
+    move_settings_file_to_players_folder(archipelago_directory, settings_file, boolify(clean_players_folder))
     generated_seed_zip = generate_ap_game(archipelago_directory)
     move_generated_seed_zip_to_files(archipelago_directory, generated_seed_zip)
     

@@ -1,19 +1,7 @@
-from pathlib import Path
 from typing import List
 
+from config import ResourceType, read_data, write_data
 from definitions import kh1_hex_to_char_map, new_item_descriptions, get_replacement_byte
-from helpers import root_path, read_bytes, write_bytes
-
-
-def get_item_description_bytes(kh1_data_path: Path) -> bytearray:
-    item_help_path = kh1_data_path.joinpath("remastered", "btltbl.bin", "UK_ItemHelp.bin")
-    item_description_bytes = read_bytes(file_path=item_help_path)
-    return item_description_bytes
-
-
-def output_item_descriptions(new_item_description_bytes: bytearray) -> None:
-    item_help_path = root_path().joinpath("Working", "remastered", "btltbl.bin", "UK_ItemHelp.bin")
-    write_bytes(file_path=item_help_path, data=new_item_description_bytes)
 
 
 def build_item_description_string(item_description_bytes: bytearray) -> str:
@@ -69,25 +57,23 @@ def build_item_description_bytes(item_description_string: str) -> List[int]:
 
 
 def replace_specific_item_description(item_num: int, description: str) -> None:
-    kh1_data_path = root_path().joinpath("Working")
-    item_description_bytes = get_item_description_bytes(kh1_data_path)
+    item_description_bytes = read_data(kind=ResourceType.BIN, key="item_help")
     item_description_string = build_item_description_string(item_description_bytes)
     item_descriptions = build_item_description_string_array(item_description_string)
     item_descriptions[item_num-1] = description
     new_item_description_string = concat_item_descriptions(item_descriptions)
     new_item_description_bytes = build_item_description_bytes(new_item_description_string)
-    output_item_descriptions(bytes(new_item_description_bytes))
+    write_data(kind=ResourceType.BIN, data=bytes(new_item_description_bytes), key="item_descriptions", overwrite=True, create_parents=True)
 
 
-def write_item_descriptions(version: int = 1) -> None:
-    kh1_data_path = root_path().joinpath("Working")
-    item_description_bytes = get_item_description_bytes(kh1_data_path)
+def write_item_descriptions() -> None:
+    item_description_bytes = read_data(kind=ResourceType.BIN, key="item_help")
     item_description_string = build_item_description_string(item_description_bytes)
     item_descriptions = build_item_description_string_array(item_description_string)
     item_descriptions = replace_item_descriptions_with_definitions_new_item_descriptions(item_descriptions)
     new_item_description_string = concat_item_descriptions(item_descriptions)
     new_item_description_bytes = build_item_description_bytes(new_item_description_string)
-    output_item_descriptions(bytes(new_item_description_bytes))
+    write_data(kind=ResourceType.BIN, data=bytes(new_item_description_bytes), key="item_descriptions", overwrite=True, create_parents=True)
 
 
 if __name__ == "__main__":

@@ -1,14 +1,8 @@
 from pathlib import Path
 from typing import Dict
 
+from config import ResourceType, read_data, write_data
 from definitions import filler_item_ids
-from helpers import root_path, read_json, read_plaintext, write_plaintext
-
-
-def get_map_prize_template_lua() -> str:
-    rando_map_prizes_lua_path = root_path().joinpath("Template Luas", "1fmRandoMapPrizes.lua")
-    map_prize_lua_str = read_plaintext(file_path=rando_map_prizes_lua_path)
-    return map_prize_lua_str
 
 
 def update_map_prize_template_lua(map_prize_lua_str: str, seed_json_data: Dict) -> str:
@@ -48,16 +42,14 @@ def update_map_prize_template_lua(map_prize_lua_str: str, seed_json_data: Dict) 
     return map_prize_lua_str
 
 
-def output_map_prize_lua_file(map_prize_lua_str: str) -> None:
-    map_prize_lua_path = root_path().joinpath("Working", "scripts", "1fmRandoMapPrizes.lua")
-    write_plaintext(file_path=map_prize_lua_path, content=map_prize_lua_str)
+
 
 
 def write_map_prize_lua(seed_json_file: Path | None = None) -> None:
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
-    map_prize_lua_str = get_map_prize_template_lua()
+    seed_json_data = read_data(kind=ResourceType.JSON, path=seed_json_file, ask_prompt=True)
+    map_prize_lua_str = read_data(kind=ResourceType.LUA, key="template_map_prize")
     map_prize_lua_str = update_map_prize_template_lua(map_prize_lua_str, seed_json_data)
-    output_map_prize_lua_file(map_prize_lua_str)
+    write_data(kind=ResourceType.LUA, data=map_prize_lua_str, key="output_map_prize", overwrite=True, create_parents=True)
 
 
 if __name__ == "__main__":

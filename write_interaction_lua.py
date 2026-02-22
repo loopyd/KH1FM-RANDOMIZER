@@ -1,39 +1,29 @@
 from typing import Dict
 from pathlib import Path
 
-from helpers import read_json, root_path, read_plaintext, write_plaintext
-
-
-def get_interaction_template_lua() -> str:
-    interaction_lua_path = root_path().joinpath("Template Luas", "1fmRandoInteraction.lua")
-    interaction_lua_str = read_plaintext(file_path=interaction_lua_path)
-    return interaction_lua_str
+from config import ResourceType, read_data, write_data
+from helpers import boolify
 
 
 def update_interaction_keyblade_lock_lua(interaction_lua_str: str, settings_data: Dict) -> str:
-    if settings_data["interact_in_battle"]:
+    if boolify(settings_data.get("interact_in_battle", False)):
         interaction_lua_str = interaction_lua_str.replace("interactinbattle = false", "interactinbattle = true")
     return interaction_lua_str
 
 
 def update_interaction_interact_in_battle_lua(interaction_lua_str: str, settings_data: Dict) -> str:
-    if settings_data["keyblades_unlock_chests"]:
+    if boolify(settings_data.get("keyblades_unlock_chests", False)):
         interaction_lua_str = interaction_lua_str.replace("chestslocked = false", "chestslocked = true")
     return interaction_lua_str
 
 
-def output_interaction_lua_file(interaction_lua_str: str) -> None:
-    rando_interaction_lua_path = root_path().joinpath("Working", "scripts", "1fmRandoInteraction.lua")
-    write_plaintext(file_path=rando_interaction_lua_path, data=interaction_lua_str, overwrite=True, create_parents=True)
-
-
-def write_interaction_lua(settings_file: Path | None = None):
-    settings_data = read_json(file_path=settings_file, ask_prompt=False)
-    if settings_data["interact_in_battle"] or settings_data["keyblades_unlock_chests"]:
-        interaction_lua_str = get_interaction_template_lua()
+def write_interaction_lua(settings_file: Path | None = None) -> None:
+    settings_data = read_data(kind=ResourceType.JSON, path=settings_file, ask_prompt=True)
+    if boolify(settings_data.get("interact_in_battle", False)) or boolify(settings_data.get("keyblades_unlock_chests", False)):
+        interaction_lua_str = read_data(kind=ResourceType.LUA, key="template_interaction")
         interaction_lua_str = update_interaction_interact_in_battle_lua(interaction_lua_str, settings_data)
         interaction_lua_str = update_interaction_keyblade_lock_lua(interaction_lua_str, settings_data)
-        output_interaction_lua_file(interaction_lua_str)
+        write_data(kind=ResourceType.LUA, data=interaction_lua_str, key="output_interaction", overwrite=True, create_parents=True)
 
 
 if __name__ == "__main__":

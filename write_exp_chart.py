@@ -1,24 +1,7 @@
 from typing import Dict, List
 from pathlib import Path
 
-from helpers import read_json, root_path, read_csv, read_bytes, write_bytes
-
-
-def get_exp_chart_definitions() -> List[Dict]:
-    exp_chart_definitions_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - EXP Chart.csv")
-    exp_chart_definitions = read_csv(file_path=exp_chart_definitions_csv_path)
-    return exp_chart_definitions
-
-
-def get_battle_table(kh1_data_path: Path) -> bytearray:
-    battle_table_path = kh1_data_path.joinpath("btltbl.bin")
-    battle_data = read_bytes(battle_table_path)
-    return battle_data
-
-
-def output_battle_table(battle_table_bytes: bytearray) -> None: 
-    battle_table_path = root_path().joinpath("Working", "btltbl.bin")
-    write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
+from config import ResourceType, read_data, write_data
 
 
 def apply_exp_multiplier(battle_table_bytes: bytearray, settings_data: Dict, exp_chart_definitions: List[Dict]) -> bytearray:
@@ -30,15 +13,13 @@ def apply_exp_multiplier(battle_table_bytes: bytearray, settings_data: Dict, exp
         battle_table_bytes[int(line["Offset"], 16) + 1] = new_exp_to_add_bytes[1]
     return battle_table_bytes
 
-# FIX: Duplicate definition of output_battle_table removed.
 
 def write_exp_chart(settings_file: Path | None = None) -> None:
-    kh1_data_path = root_path().joinpath("Working")
-    exp_chart_definitions = get_exp_chart_definitions()
-    settings_data = read_json(file_path=settings_file, ask_prompt=False)
-    battle_table_bytes = get_battle_table(kh1_data_path)
+    exp_chart_definitions = read_data(kind=ResourceType.CSV, key="exp_chart_definitions")
+    settings_data = read_data(kind=ResourceType.JSON, path=settings_file, ask_prompt=False)
+    battle_table_bytes = read_data(kind=ResourceType.BIN, key="battle_table")
     battle_table_bytes = apply_exp_multiplier(battle_table_bytes, settings_data, exp_chart_definitions)
-    output_battle_table(battle_table_bytes)
+    write_data(kind=ResourceType.BIN, data=battle_table_bytes, key="battle_table", overwrite=True, create_parents=True)
 
 
 if __name__ == "__main__":

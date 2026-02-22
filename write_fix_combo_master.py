@@ -1,13 +1,6 @@
-
 from pathlib import Path
 
-from helpers import read_json, root_path, read_plaintext, write_plaintext
-
-
-def get_fix_combo_master_template_lua() -> str:
-    rando_combo_master_lua_path = root_path().joinpath("Template Luas", "1fmRandoFixComboMaster.lua")
-    fix_combo_master_lua_str = read_plaintext(file_path=rando_combo_master_lua_path)
-    return fix_combo_master_lua_str
+from config import ResourceType, read_data, write_data
 
 
 def update_fix_combo_master_template_lua(fix_combo_master_lua_str: str, seed_json_data: dict) -> str:
@@ -20,16 +13,11 @@ def update_fix_combo_master_template_lua(fix_combo_master_lua_str: str, seed_jso
     return fix_combo_master_lua_str
 
 
-def output_fix_combo_master_lua_file(fix_combo_master_lua_str: str) -> None:
-    output_file_path = root_path().joinpath("Working", "scripts", "1fmRandoFixComboMaster.lua")
-    write_plaintext(file_path=output_file_path, data=fix_combo_master_lua_str, overwrite=True, create_parents=True)
-
-
 def write_fix_combo_master(seed_json_file: Path | None = None) -> None:
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
-    fix_combo_master_lua_str = get_fix_combo_master_template_lua()
+    seed_json_data = read_data(kind=ResourceType.JSON, path=seed_json_file, ask_prompt=True)
+    fix_combo_master_lua_str = read_data(kind=ResourceType.LUA, key="template_fix_combo_master")
     fix_combo_master_lua_str = update_fix_combo_master_template_lua(fix_combo_master_lua_str, seed_json_data)
-    output_fix_combo_master_lua_file(fix_combo_master_lua_str)
+    write_data(kind=ResourceType.LUA, data=fix_combo_master_lua_str, key="output_fix_combo_master", overwrite=True, create_parents=True)
 
 
 if __name__ == "__main__":

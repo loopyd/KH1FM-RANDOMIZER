@@ -1,12 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
-from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
-
-def get_evdl_locations() -> List[Dict]:
-    static_items_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Static Items.csv")
-    evdl_locations = read_csv(file_path=static_items_csv_path)
-    return evdl_locations
+from config import ResourceType, read_data, write_data
 
 
 def sort_evdl_location_data(evdl_locations: List[Dict]) -> Dict[str, List[Dict]]:
@@ -18,20 +13,14 @@ def sort_evdl_location_data(evdl_locations: List[Dict]) -> Dict[str, List[Dict]]
     return sorted_evdl_location_data
 
 
-def write_evdl_bytes_to_file(evdl_file: Path, evdl_bytes: bytearray):
-    file_path = root_path().joinpath("Working", evdl_file)
-    write_bytes(file_path=file_path, data=evdl_bytes, overwrite=True, create_parents=True)
-    
-
-def write_updated_evdl_files(sorted_evdl_location_data: Dict[str, List[Dict]], seed_json_data: Dict, kh1_data_path: Path) -> None:
+def write_updated_evdl_files(sorted_evdl_location_data: Dict[str, List[Dict]], seed_json_data: Dict) -> None:
     for file in sorted_evdl_location_data.keys():
         print("Preparing " + file)
         corrected_file = sorted_evdl_location_data[file][0]["Use Corrected File?"]
         if corrected_file == "Y":
-            file_path = root_path().joinpath("Corrected EVDLs", file)
+            evdl_bytes = read_data(kind=ResourceType.BIN, path_parts=("Corrected EVDLs", file), ask_prompt=False)
         else:
-            file_path = kh1_data_path.joinpath(file)
-        evdl_bytes = read_bytes(file_path, ask_prompt=False)
+            evdl_bytes = read_data(kind=ResourceType.BIN, path_parts=("Working", file), ask_prompt=False)
         for replacement in sorted_evdl_location_data[file]:
             print(replacement)
             print("Updating " + replacement["AP Location ID"] + " at offset " + replacement["Offset"])
@@ -46,15 +35,14 @@ def write_updated_evdl_files(sorted_evdl_location_data: Dict[str, List[Dict]], s
             else:
                 evdl_bytes[int(replacement["Offset"], 16)] = 1
                 print("AP Location ID not found in replacement JSON, writing potion")
-        write_evdl_bytes_to_file(file_path=file, evdl_bytes=evdl_bytes)
+        write_data(kind=ResourceType.BIN, data=evdl_bytes, path_parts=("Working", file), overwrite=True, create_parents=True)
 
 
 def write_static_items(seed_json_file: Path | None = None) -> None:
-    kh1_data_path = root_path().joinpath("Working")
-    seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
-    evdl_locations = get_evdl_locations()
+    seed_json_data = read_data(kind=ResourceType.JSON, path=seed_json_file, ask_prompt=True)
+    evdl_locations = read_data(kind=ResourceType.CSV, key="evdl_locations")
     sorted_evdl_location_data = sort_evdl_location_data(evdl_locations)
-    write_updated_evdl_files(sorted_evdl_location_data, seed_json_data, kh1_data_path)
+    write_updated_evdl_files(sorted_evdl_location_data, seed_json_data)
 
 
 if __name__=="__main__":
