@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import List
 
-from config import APVersion
 from helpers import root_path, read_json, read_plaintext, write_plaintext
 
 
@@ -25,7 +24,7 @@ def update_ap_costs_template_lua(ap_cost_data: List, ap_costs_lua_str: str) -> s
     return ap_costs_lua_str
 
 
-def write_ap_cost_lua(settings_file: Path | None = None, ap_cost_file: Path | None = None, version: APVersion = APVersion.AP_DEV):
+def write_ap_cost_lua(settings_file: Path | None = None, ap_cost_file: Path | None = None):
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data["randomize_ap_costs"] != "off":
         ap_cost_data = read_json(file_path=ap_cost_file, ask_prompt=False)

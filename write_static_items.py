@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Dict, List
 
-from config import APVersion
 from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
 
 def get_evdl_locations() -> List[Dict]:
@@ -50,7 +49,7 @@ def write_updated_evdl_files(sorted_evdl_location_data: Dict[str, List[Dict]], s
         write_evdl_bytes_to_file(file_path=file, evdl_bytes=evdl_bytes)
 
 
-def write_static_items(seed_json_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
+def write_static_items(seed_json_file: Path | None = None) -> None:
     kh1_data_path = root_path().joinpath("Working")
     seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
     evdl_locations = get_evdl_locations()

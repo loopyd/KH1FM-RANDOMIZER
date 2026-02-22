@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Dict, List
 
-from config import APVersion
 from definitions import sora_ability_item_ids
 from helpers import root_path, read_csv, read_json, read_bytes, write_bytes
 
@@ -62,7 +61,7 @@ def output_battle_table(battle_table_bytes: bytearray) -> None:
     write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
     
 
-def write_level_up_rewards(seed_json_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
+def write_level_up_rewards(seed_json_file: Path | None = None) -> None:
     kh1_data_path = root_path().joinpath("Working")
     level_up_abilities_definitions = get_level_up_abilities_definitions()
     level_up_stats_definitions = get_level_up_stats_definitions()

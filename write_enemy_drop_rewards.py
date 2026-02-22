@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Dict, List
 
-from config import APVersion
 from definitions import filler_item_ids
 from helpers import read_bytes, root_path, read_csv, write_bytes
 
@@ -49,7 +48,7 @@ def sort_enemy_drop_definitions(enemy_drop_definitions: List[Dict]) -> Dict:
     return sorted_enemy_drop_definitions
 
 
-def write_enemy_drop_rewards(version: APVersion = APVersion.AP_DEV) -> None:
+def write_enemy_drop_rewards() -> None:
     kh1_data_path = root_path().joinpath("Working")
     enemy_drop_definitions = get_enemy_drop_definitions()
     sorted_enemy_drop_definitions = sort_enemy_drop_definitions(enemy_drop_definitions)

@@ -148,3 +148,14 @@ def write_presets(node_name: NodeType, args: Namespace) -> None:
             key: value for key, value in pythonic_vars.items() if key in ["ap_zip_file", "kh1_data_path"]
         }
     write_json(presets_path, pythonic_vars, overwrite=True, create_parents=True)
+
+
+def get_ap_version(settings_data: Dict) -> APVersion:
+    if getattr(settings_data, "version", None) is not None:
+        if settings_data["version"] not in set(version.value for version in APVersion):
+            version = APVersion.AP_MAIN
+        else:
+            version = APVersion(settings_data["version"])
+    else:
+        version = APVersion.AP_MAIN
+    return version

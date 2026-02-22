@@ -1,7 +1,6 @@
 from typing import Dict, List
 from pathlib import Path
 
-from config import APVersion
 from helpers import read_json, root_path, read_csv, read_bytes, write_bytes
 
 
@@ -33,7 +32,7 @@ def apply_exp_multiplier(battle_table_bytes: bytearray, settings_data: Dict, exp
 
 # FIX: Duplicate definition of output_battle_table removed.
 
-def write_exp_chart(settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
+def write_exp_chart(settings_file: Path | None = None) -> None:
     kh1_data_path = root_path().joinpath("Working")
     exp_chart_definitions = get_exp_chart_definitions()
     settings_data = read_json(file_path=settings_file, ask_prompt=False)

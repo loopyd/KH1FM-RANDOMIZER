@@ -1,7 +1,6 @@
 from typing import Dict
 from pathlib import Path
 
-from config import APVersion
 from helpers import read_json, root_path, read_plaintext, write_plaintext
 
 
@@ -28,7 +27,7 @@ def output_interaction_lua_file(interaction_lua_str: str) -> None:
     write_plaintext(file_path=rando_interaction_lua_path, data=interaction_lua_str, overwrite=True, create_parents=True)
 
 
-def write_interaction_lua(settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV):
+def write_interaction_lua(settings_file: Path | None = None):
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data["interact_in_battle"] or settings_data["keyblades_unlock_chests"]:
         interaction_lua_str = get_interaction_template_lua()

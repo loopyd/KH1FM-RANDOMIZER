@@ -1,6 +1,5 @@
 from typing import Dict
 
-from config import APVersion
 from helpers import read_plaintext, root_path, read_json, write_plaintext
 
 
@@ -26,7 +25,7 @@ def output_death_link_lua_file(death_link_lua_str: str) -> None:
     write_plaintext(file_path=rando_death_link_lua_path, data=death_link_lua_str, overwrite=True, create_parents=True)
 
 
-def write_death_link_lua(settings_file = None, version: APVersion = APVersion.AP_DEV):
+def write_death_link_lua(settings_file = None):
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data["death_link"] != "off" or settings_data["donald_death_link"] or settings_data["goofy_death_link"]:
         death_link_lua_str = get_death_link_template_lua()

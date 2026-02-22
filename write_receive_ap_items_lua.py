@@ -2,7 +2,6 @@
 from pathlib import Path
 from typing import Dict
 
-from config import APVersion
 from helpers import root_path, read_json, read_plaintext, write_plaintext
 
 
@@ -22,7 +21,7 @@ def output_receive_ap_items_lua_file(receive_ap_items_lua_str: str) -> None:
     write_plaintext(file_path=output_path, content=receive_ap_items_lua_str, overwrite=True, create_parents=True)
 
 
-def write_receive_ap_items_lua(settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
+def write_receive_ap_items_lua(settings_file: Path | None = None) -> None:
     settings_data = read_json(file_path=settings_file, ask_prompt=True)
     receive_ap_items_lua_str = get_receive_ap_items_lua()
     receive_ap_items_lua_str = update_receive_ap_items_lua(receive_ap_items_lua_str, settings_data)

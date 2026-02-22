@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import List
 
-from config import APVersion
 from helpers import root_path, read_json, read_plaintext, write_plaintext
 
 
@@ -35,7 +34,7 @@ def output_synth_lua_file(synth_lua_str: str) -> None:
     write_plaintext(file_path=lua_path, data=synth_lua_str, overwrite=True, create_parents=True)
 
 
-def write_synthesis_items(seed_json_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
+def write_synthesis_items(seed_json_file: Path | None = None) -> None:
     seed_json_data = read_json(file_path=seed_json_file, ask_prompt=True)
     synth_items = get_synth_items(seed_json_data)
     synth_lua_str = get_synth_template_lua()

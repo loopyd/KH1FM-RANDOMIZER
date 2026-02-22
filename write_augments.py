@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from config import APVersion
 from definitions import augment_strings
 from write_item_descriptions import replace_specific_item_description
 from helpers import read_json, root_path, read_plaintext, write_plaintext
@@ -81,7 +80,7 @@ def get_new_spell_effectiveness(spell_mp_costs_data):
     return spell_effectiveness
 
 
-def write_augments(seed_json_file: Path | None = None, settings_file: Path | None = None, mp_cost_file: Path | None = None, version: APVersion = APVersion.AP_DEV):
+def write_augments(seed_json_file: Path | None = None, settings_file: Path | None = None, mp_cost_file: Path | None = None):
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data.get("accessory_augments"):
         augments_lua_string = get_augments_lua_str()

@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Dict, List
 
-from config import APVersion
 from definitions import keyblade_list
 from write_item_descriptions import replace_specific_item_description
 from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
@@ -79,7 +78,7 @@ def output_battle_table(battle_table_bytes: bytearray) -> None:
     write_bytes(file_path=battle_table_path, data=battle_table_bytes, overwrite=True, create_parents=True)
 
 
-def write_keyblade_stats(seed_json_file = None, version: APVersion = APVersion.AP_DEV):
+def write_keyblade_stats(seed_json_file = None):
     kh1_data_path = root_path().joinpath("Working")
     keyblade_stats_data = read_json(file_path=seed_json_file, ask_prompt=False)
     battle_table_bytes = get_battle_table(kh1_data_path)

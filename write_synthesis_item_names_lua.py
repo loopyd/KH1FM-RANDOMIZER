@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from config import APVersion
 from helpers import read_json, root_path, read_plaintext, write_plaintext
 
 
@@ -15,7 +14,7 @@ def output_lua_file(lua_str: str, lua_file_name: Path) -> None:
     write_plaintext(file_path=lua_path, data=lua_str, overwrite=True, create_parents=True)
 
 
-def write_synthesis_item_names_lua(settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
+def write_synthesis_item_names_lua(settings_file: Path | None = None) -> None:
     settings_data = read_json(file_path=settings_file, ask_prompt=True)
     synthesis_item_names_bytes_array = settings_data["synthesis_item_name_byte_arrays"]
     synth_item_bytes_str = str(synthesis_item_names_bytes_array).replace("[", "{").replace("]", "}")
