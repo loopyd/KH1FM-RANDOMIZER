@@ -1,6 +1,5 @@
 import sys
 from gooey import Gooey,GooeyParser
-import wx
 import threading
 
 from write_mod import write_mod
