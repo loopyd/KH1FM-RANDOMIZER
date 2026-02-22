@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
+from config import APVersion
 from helpers import root_path, read_bytes, read_csv, write_bytes, read_json
 
 def get_map_prize_definitions() -> List[Dict]:
@@ -40,7 +41,7 @@ def replace_map_prize_items(map_prize_bytes: bytearray, map_prize_definitions: L
     return map_prize_bytes
 
 
-def write_map_prizes(seed_json_file: Path | None = None) -> None:
+def write_map_prizes(seed_json_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     kh1_data_path = root_path().joinpath("Working")
     map_prize_definitions = get_map_prize_definitions()
     map_prize_data = get_map_prize_data(kh1_data_path)

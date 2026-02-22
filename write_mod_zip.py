@@ -1,6 +1,7 @@
 import yaml
 from datetime import datetime
 
+from config import APVersion
 from helpers import root_path, read_json, list_files_recursive, remove_path, write_plaintext, create_zip
 
 
@@ -30,7 +31,7 @@ def create_mod_yaml(seed: int, slot_name: str) -> None:
     write_plaintext(file_path=mod_yaml_path, content=mod_yaml_str, overwrite=True, create_parents=True)
 
 
-def write_mod_zip(settings_file=None):
+def write_mod_zip(settings_file=None, version: APVersion = APVersion.AP_DEV):
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     now = datetime.now()
     seed = settings_data["seed"]

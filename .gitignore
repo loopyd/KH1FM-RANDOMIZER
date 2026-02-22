@@ -17,3 +17,4 @@ seed_generator.spec
 create_exes.bat
 /lib
 /.idea
+/.venv

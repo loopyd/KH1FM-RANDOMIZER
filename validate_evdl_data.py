@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Dict, List
+from config import APVersion
 from helpers import get_folder, root_path, read_csv
 
 
@@ -9,7 +10,7 @@ def get_corrected_evdl_data() -> List[Dict]:
     return corrected_evdl_data
 
 
-def validate_evdl_data(kh1_data_path: Path | None = None) -> None:
+def validate_evdl_data(kh1_data_path: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     kh1_data_path = get_folder(folder_path=kh1_data_path, label="KH1 Data Path", ask_prompt=True)
     error = False
     corrected_evdl_data = get_corrected_evdl_data()

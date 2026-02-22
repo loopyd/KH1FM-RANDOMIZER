@@ -1,6 +1,7 @@
 from typing import Dict, List
 from pathlib import Path
 
+from config import APVersion
 from definitions import sort_order, filler_item_ids
 from helpers import root_path, read_bytes, write_bytes, read_csv, read_json
 
@@ -179,7 +180,7 @@ def write_item_buy_price(new_prices: Dict[int, int]) -> None:
     output_battle_table(battle_table_bytes)
 
 
-def write_item_sort_order_and_sell_price(settings_file: Path | None = None) -> None:
+def write_item_sort_order_and_sell_price(settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     new_prices = {}
     new_prices[4] = 400 # Elixir added for WL flowers

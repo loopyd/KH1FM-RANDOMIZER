@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict
 
+from config import APVersion
 from definitions import filler_item_ids
 from helpers import root_path, read_json, read_plaintext, write_plaintext
 
@@ -53,7 +54,7 @@ def output_map_prize_lua_file(map_prize_lua_str: str) -> None:
     write_plaintext(file_path=map_prize_lua_path, content=map_prize_lua_str)
 
 
-def write_map_prize_lua(seed_json_file: Path | None = None) -> None:
+def write_map_prize_lua(seed_json_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
     map_prize_lua_str = get_map_prize_template_lua()
     map_prize_lua_str = update_map_prize_template_lua(map_prize_lua_str, seed_json_data)

@@ -1,4 +1,5 @@
 import sys
+import threading
 
 from gooey import Gooey,GooeyParser
 import shutil
@@ -6,8 +7,8 @@ import subprocess
 import re
 from pathlib import Path
 
-from helpers import root_path, copy_and_replace, clear_folder
-from config import read_presets, write_presets
+from helpers import customize_gooey_window, customize_gooey_window_async, root_path, copy_and_replace, clear_folder
+from config import read_presets, write_presets, get_theme_color
 
 # Handle Splash Screen
 if getattr(sys, 'frozen', False):
@@ -69,7 +70,11 @@ def move_generated_seed_zip_to_files(archipelago_directory: Path, generated_seed
 @Gooey(program_name='KH1 Randomizer Seed Generator',
         image_dir=str(root_path().joinpath("Images")),
         program_description = "Program to generate KH1 Randomizer seed.",
-        header_bg_color="#5E5540")
+        header_bg_color=get_theme_color("gooey", "header_bg_color"),
+        body_bg_color=get_theme_color("gooey", "body_bg_color"),
+        footer_bg_color=get_theme_color("gooey", "footer_bg_color"),
+        terminal_bg_color=get_theme_color("gooey", "terminal_bg_color"),
+        terminal_font_color=get_theme_color("gooey", "terminal_font_color"))
 
 def main():
     presets = read_presets("seed")
@@ -97,6 +102,8 @@ def main():
         metavar = "Clean Players Folder",
         help = "Determines whether clear all previous data in Archipelago's \"Players\" folder before generation.\nSet to \"No\" if there are YAMLs or subfolders in this folder you'd like to keep.")
     
+    customize_thread = threading.Thread(target=customize_gooey_window_async, args=(30.0, customize_gooey_window, get_theme_color), daemon=True)
+    customize_thread.start()
     args = parser.parse_args()
     
     archipelago_directory = getattr(args, "archipelago_directory")

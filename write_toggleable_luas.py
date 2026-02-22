@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from config import APVersion
 from helpers import root_path, read_json, read_plaintext, write_plaintext
 
 lua_map = {
@@ -28,7 +29,7 @@ def output_lua_file(lua_str: str, lua_file_name: Path) -> None:
     write_plaintext(file_path=lua_path, data=lua_str, overwrite=True, create_parents=True)
 
 
-def write_toggleable_luas(settings_file: Path | None = None) -> None:
+def write_toggleable_luas(settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     settings_data = read_json(file_path=settings_file, ask_prompt=True)
     for key in lua_map.keys():
         if settings_data[key]:

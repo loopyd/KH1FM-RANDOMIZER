@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
+from config import APVersion
 from definitions import filler_item_ids
 from helpers import root_path, read_csv, read_bytes, write_bytes
 
@@ -38,7 +39,7 @@ def write_bambi_mdls(bambi_bytes: bytearray) -> None:
     write_bytes(file_path=bambi_data_path, data=bambi_bytes, overwrite=True, create_parents=True)
 
 
-def write_bambi_rewards() -> None:
+def write_bambi_rewards(version: APVersion = APVersion.AP_DEV) -> None:
     kh1_data_path = root_path().joinpath("Working")
     bambi_definitions = get_bambi_definitions()
     bambi_bytes = get_bambi_data(kh1_data_path)

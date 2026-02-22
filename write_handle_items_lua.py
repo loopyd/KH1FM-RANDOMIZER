@@ -1,6 +1,7 @@
 from typing import Dict
 from pathlib import Path
 
+from config import APVersion
 from helpers import read_json, write_plaintext, read_plaintext, root_path
 
 
@@ -30,7 +31,7 @@ def output_handle_items_lua_file(handle_items_lua_str: str) -> None:
     write_plaintext(file_path=handle_items_lua_path, data=handle_items_lua_str, overwrite=True, create_parents=True)
 
 
-def write_handle_items_lua(settings_file: Path | None = None):
+def write_handle_items_lua(settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV):
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     handle_items_lua_str = get_handle_items_lua()
     handle_items_lua_str = update_puppies_handle_items_lua(handle_items_lua_str, settings_data)

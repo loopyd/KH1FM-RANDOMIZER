@@ -4,11 +4,41 @@ import os
 import shutil
 import struct
 import sys
+import time
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Callable, Dict, Iterable, List, Tuple, Union, Type
 
 import zipfile
-import tkinter.filedialog as filedialog 
+import tkinter.filedialog as filedialog
+import wx 
+
+WxControlType = Union[
+    Type[wx.Button],
+    Type[wx.TextCtrl],
+    Type[wx.RadioButton],
+    Type[wx.CheckBox],
+    Type[wx.StaticText],
+    Type[wx.Choice],
+    Type[wx.ListBox],
+    Type[wx.ComboBox],
+    Type[wx.SpinCtrl],
+    Type[wx.Slider],
+    Type[wx.Window]
+]
+
+WxControl = Union[
+    wx.Button,
+    wx.TextCtrl,
+    wx.RadioButton,
+    wx.CheckBox,
+    wx.StaticText,
+    wx.Choice,
+    wx.ListBox,
+    wx.ComboBox,
+    wx.SpinCtrl,
+    wx.Slider,
+    wx.Window
+]
 
 
 def get_folder(folder_path: Path | None = None, ask_prompt: bool = True, label: str = "folder path") -> Path:
@@ -621,3 +651,130 @@ def create_zip(zip_file_path: Path, directory_path: Path, overwrite: bool = Fals
             for file in files:
                 file_path = Path(root).joinpath(file)
                 zipf.write(file_path, file_path.relative_to(directory_path))
+
+
+def set_wx_control_props(control, foreground_color: wx.Colour | None = None, background_color: wx.Colour | None = None) -> None:
+    """
+    Customizes the select wxPython control's properties.
+    
+    Args:
+        control: A wxPython control object (e.g., wx.Button, wx.TextCtrl, wx.RadioButton, wx.CheckBox)
+        foreground_color (wx.Colour | None): The foreground (text) color.
+                                        If None, the foreground color is not changed.
+        background_color (wx.Colour | None): The background color.
+                                        If None, the background color is not changed.
+    """
+    try:
+        if not isinstance(control, wx.Window):
+            raise TypeError(f"Control must be a wx.Window instance, got {type(control)}")
+        if foreground_color is not None:
+            control.SetForegroundColour(foreground_color)
+        if background_color is not None:
+            control.SetBackgroundColour(background_color)
+        control.Refresh() 
+    except ImportError:
+        raise ImportError("wxPython (wx) is not installed. Install it with: pip install wxPython")
+    except Exception as e:
+        raise RuntimeError(f"Error setting control colors: {str(e)}")
+
+
+def get_wx_controls_by_type(parent, control_type: WxControlType) -> List[WxControl]:
+    """
+    Recursively finds all wxPython controls of a specified type within a parent container.
+    
+    Args:
+        parent: A wxPython parent container (e.g., wx.Panel, wx.Frame)
+        control_type: The type of control to find.
+    
+    Returns:
+        List[WxControlType]: A list of all matching control objects found within the parent container.
+    """
+    try:
+        controls = []
+        has_children = hasattr(parent, 'GetChildren') and callable(getattr(parent, 'GetChildren')) and len(parent.GetChildren()) > 0
+        if not has_children:
+            return controls
+        for child in parent.GetChildren():
+            if isinstance(child, control_type):
+                controls.append(child)
+            has_children = hasattr(child, 'GetChildren') and callable(getattr(child, 'GetChildren')) and len(child.GetChildren()) > 0
+            if has_children:
+                controls.extend(get_wx_controls_by_type(child, control_type))
+        return controls
+    except ImportError:
+        raise ImportError("wxPython (wx) is not installed. Install it with: pip install wxPython")
+    except Exception as e:
+        raise RuntimeError(f"Error finding controls: {str(e)}")
+
+
+def get_gooey_window() -> wx.Window | None:
+    """
+    Retrieves the current wx.Window (frame) from a running Gooey application.
+    
+    Returns:
+        wx.Window | None: The current Gooey window, or None if no Gooey application is running.
+    """
+    try:
+        app = wx.GetApp()
+        if app is None:
+            return None
+        window = wx.App.GetTopWindow(app)
+        if window is None:
+            return None
+        return window
+    except ImportError:
+        raise ImportError("wxPython (wx) is not installed. Install it with: pip install wxPython")
+    except Exception as e:
+        raise RuntimeError(f"Error getting Gooey window: {str(e)}")
+
+
+def customize_gooey_window_async(timeout: float = 3.0, customization_callback: Callable | None = None, get_theme_func: Callable | None = None) -> None:
+    """
+    Waits for the Gooey window to appear and customizes it in a background thread.
+    
+    Args:
+        timeout (float): Maximum time to wait for the window to appear (in seconds). Defaults to 30.
+        customization_callback (callable): A function that takes the Gooey window as an argument
+                                          and customizes it. If None, no customization is performed.
+        get_theme_func (callable): A function that returns theme customizations based on a node-key pairing.
+    """
+    try:
+        start_time = time.time()
+        gooey_window = None
+        while gooey_window is None and (time.time() - start_time) < timeout:
+            gooey_window = get_gooey_window()
+            if gooey_window is None:
+                time.sleep(0.01)
+
+        if gooey_window is None:
+            print(f"Timeout: Gooey window did not appear within {timeout} seconds.")
+            return
+        
+        time.sleep(0.60)  # Allow time for the window to fully initialize, if is too short will cause a segfault
+    
+        if customization_callback is not None and callable(customization_callback):
+            customization_callback(gooey_window, get_theme_func)
+        
+    except Exception as e:
+        print(f"Error customizing Gooey window: {str(e)}")
+        
+
+def customize_gooey_window(gooey_window: wx.Window, theme_color_func: Callable | None = None) -> None:
+    try:
+        if theme_color_func is None:
+            raise ValueError("theme_color_func must be provided")
+        if getattr(theme_color_func, '__call__', None) is None:
+            raise ValueError("theme_color_func must be a callable function")
+        
+        for control_type in [ wx.Button, wx.TextCtrl, wx.RadioButton, wx.CheckBox, wx.StaticText,
+                     wx.Choice, wx.ListBox, wx.ComboBox, wx.SpinCtrl, wx.Slider ]:
+            wx_controls = get_wx_controls_by_type(gooey_window, control_type)
+            for control in wx_controls:
+                font_color = theme_color_func(control_type, "font_color")
+                bg_color = theme_color_func(control_type, "bg_color")
+                set_wx_control_props(control, foreground_color=font_color, background_color=bg_color)
+
+    except Exception as e:
+        import traceback
+        print(f"Error during window customization: {str(e)}")
+        traceback.print_exc()

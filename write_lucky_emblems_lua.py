@@ -1,6 +1,7 @@
 from typing import Dict
 from pathlib import Path
 
+from config import APVersion
 from helpers import root_path, read_json, read_plaintext, write_plaintext
 
 
@@ -24,7 +25,7 @@ def output_lucky_emblems_lua_file(lucky_emblems_lua_str: str) -> None:
     write_plaintext(file_path=lucky_emblems_lua_path, content=lucky_emblems_lua_str)
 
 
-def write_lucky_emblems_lua(settings_file: Path | None = None) -> None:
+def write_lucky_emblems_lua(settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data["end_of_the_world_unlock"] == "lucky_emblems" or settings_data["final_rest_door_key"] == "lucky_emblems":
         lucky_emblems_lua_str = get_lucky_emblems_template_lua()

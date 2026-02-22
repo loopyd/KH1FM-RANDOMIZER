@@ -2,6 +2,7 @@ import shutil
 from typing import Dict, List
 from pathlib import Path
 
+from config import APVersion
 from helpers import get_folder, root_path, read_csv
 
 
@@ -39,7 +40,7 @@ def copy_src_kh1_files_to_output(kh1_data_path: Path, csv_lines: List[dict]) -> 
                 copied_files.append(line["File"])
 
 
-def write_files_to_working(kh1_data_path: Path | None = None) -> None:
+def write_files_to_working(kh1_data_path: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     kh1_data_path = get_folder(folder_path=kh1_data_path, label="KH1 Data Path", ask_prompt=True)
     csv_lines: List[Dict] = []
     for file in list_definition_files_in_current_directory():

@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
+from config import APVersion
 from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
 
 
@@ -111,7 +112,7 @@ def write_starting_accessories_stock(seed_json_file: Path | None = None, setting
         write_evdl_bytes_to_file(Path("remastered") / "dh01.ard" / "UK_dh01c.ev", evdl_bytes)
 
 
-def write_starting_accessories(seed_json_file: Path | None = None, settings_file: Path | None = None):
+def write_starting_accessories(seed_json_file: Path | None = None, settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV):
     write_starting_accessories_equipped(seed_json_file, settings_file)
     write_starting_accessories_stock(seed_json_file, settings_file)
 

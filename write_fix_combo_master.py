@@ -1,6 +1,7 @@
 
 from pathlib import Path
 
+from config import APVersion
 from helpers import read_json, root_path, read_plaintext, write_plaintext
 
 
@@ -25,7 +26,7 @@ def output_fix_combo_master_lua_file(fix_combo_master_lua_str: str) -> None:
     write_plaintext(file_path=output_file_path, data=fix_combo_master_lua_str, overwrite=True, create_parents=True)
 
 
-def write_fix_combo_master(seed_json_file: Path | None = None) -> None:
+def write_fix_combo_master(seed_json_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     seed_json_data = read_json(file_path=seed_json_file, ask_prompt=False)
     fix_combo_master_lua_str = get_fix_combo_master_template_lua()
     fix_combo_master_lua_str = update_fix_combo_master_template_lua(fix_combo_master_lua_str, seed_json_data)

@@ -2,6 +2,7 @@ import json
 from typing import Dict, List, Tuple
 from pathlib import Path
 
+from config import APVersion
 from helpers import read_bytes, read_json, root_path, read_csv, read_plaintext, write_plaintext, write_bytes
 
 
@@ -130,7 +131,7 @@ def output_battle_table(battle_table_bytes: bytearray) -> None:
     write_bytes(file_path=rando_battle_table_path, data=bytes(battle_table_bytes), overwrite=True, create_parents=True)
 
 
-def write_chests_and_rewards(seed_json_file = None) -> None:
+def write_chests_and_rewards(seed_json_file = None, version: APVersion = APVersion.AP_DEV) -> None:
     kh1_data_path = root_path().joinpath("Working")
     chest_definitions = get_chest_definitions()
     reward_definitions = get_rewards_definitions()

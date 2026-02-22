@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from config import APVersion
 from write_item_descriptions import build_item_description_string, build_item_description_string_array, concat_item_descriptions, build_item_description_bytes
 from helpers import root_path, read_json, read_bytes, write_bytes, replace_value_at_index, read_plaintext, write_plaintext
 
@@ -88,7 +89,7 @@ def output_gummi_items_lua_file(gummi_items_lua_str: str) -> None:
     write_plaintext(file_path=gummi_items_lua_path, data=gummi_items_lua_str, overwrite=True, create_parents=True)
 
 
-def write_gummi_items(settings_file: Path | None = None) -> None:
+def write_gummi_items(settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     kh1_data_path = root_path().joinpath("Working")
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     settings_num = 0

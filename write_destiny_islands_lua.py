@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from config import APVersion
 from helpers import read_plaintext, root_path, write_plaintext, read_json
 
 
@@ -21,7 +22,7 @@ def update_destiny_islands_lua_str(destiny_islands_lua_str: str, day_2_materials
     return destiny_islands_lua_str
 
 
-def write_destiny_islands_lua(settings_file: Path | None = None) -> None:
+def write_destiny_islands_lua(settings_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if settings_data["destiny_islands"]:
         day_2_materials = settings_data["day_2_materials"]

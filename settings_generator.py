@@ -1,10 +1,12 @@
+import threading
+
 from gooey import Gooey, GooeyParser
 import sys
 import yaml
 from argparse import Namespace
 
-from helpers import root_path, write_plaintext, boolify, space_to_snake
-from config import read_presets, write_presets
+from helpers import customize_gooey_window, customize_gooey_window_async, root_path, write_plaintext, boolify, space_to_snake
+from config import read_presets, write_presets, get_theme_color
 
 
 # Handle Splash Screen
@@ -81,8 +83,12 @@ def output_yaml(yaml_str: str, slot_name: str):
     image_dir=str(root_path().joinpath("Images")),
     tabbed_groups=True,
     default_size=(720, 480),
-    header_bg_color="#444034",
-)
+    header_bg_color=get_theme_color("gooey", "header_bg_color"),
+    body_bg_color=get_theme_color("gooey", "body_bg_color"),
+    footer_bg_color=get_theme_color("gooey", "footer_bg_color"),
+    terminal_bg_color=get_theme_color("gooey", "terminal_bg_color"),
+    terminal_font_color=get_theme_color("gooey", "terminal_font_color"))
+
 def main():
     presets = read_presets("settings")
     parser = GooeyParser()
@@ -682,7 +688,10 @@ def main():
         help="If Randomize AP Costs is set to Randomize or Distribute, this defined the minimum AP cost an ability can have.",
     )
 
+    customize_thread = threading.Thread(target=customize_gooey_window_async, args=(30.0, customize_gooey_window, get_theme_color), daemon=True)
+    customize_thread.start()
     args = parser.parse_args()
+    
     write_presets("settings", args)
     result = create_yaml(args)
     slot_name = getattr(args, "slot_name")

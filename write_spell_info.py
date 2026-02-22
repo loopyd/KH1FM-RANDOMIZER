@@ -2,6 +2,8 @@ from helpers import root_path, read_json, read_csv, read_bytes, write_bytes
 from pathlib import Path
 from typing import Dict, List
 
+from config import APVersion
+
 
 def get_spell_mp_cost_definitions() -> List[Dict]:
     spell_cost_csv_path = root_path().joinpath("Documentation", "KH1FM Documentation - Spell MP Cost.csv")
@@ -105,7 +107,7 @@ def replace_spell_effectiveness(battle_table_bytes, spell_mp_costs_data, spell_e
         battle_table_bytes[int(spell_effectiveness_definitions[i]["Offset"], 16) + 1] = new_effectiveness//256
     return battle_table_bytes
 
-def write_spell_info(settings_file: Path | None = None, mp_cost_file: Path | None = None) -> None:
+def write_spell_info(settings_file: Path | None = None, mp_cost_file: Path | None = None, version: APVersion = APVersion.AP_DEV) -> None:
     settings_data = read_json(file_path=settings_file, ask_prompt=True)
     if "randomize_spell_mp_costs" not in settings_data.keys():
         print("Generation is from older AP world, skipping...")

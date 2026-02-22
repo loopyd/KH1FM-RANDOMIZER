@@ -85,7 +85,7 @@ def change_ard_bytes(kh1_data_path: Path, changes: Dict) -> None:
             write_bytes(kh1_data_file_path, bytes, overwrite=True, create_parents=True)
 
 
-def write_enemies(settings_file: Path | None = None) -> None:
+def write_enemies(settings_file: Path | None = None, version: int = 1) -> None:
     kh1_data_path = root_path().joinpath("Working")
     settings_data = read_json(file_path=settings_file, ask_prompt=False)
     if "randomize_enemies" in settings_data.keys():

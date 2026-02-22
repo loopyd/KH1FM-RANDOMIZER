@@ -1,6 +1,7 @@
 from typing import Dict, List
 from pathlib import Path
 
+from config import APVersion
 from helpers import root_path, read_bytes, write_bytes, read_csv
 
 
@@ -21,7 +22,7 @@ def output_gumi_spec_file(gummi_spec_file_bytes: bytearray) -> None:
     write_bytes(file_path=gummi_spec_path, data=gummi_spec_file_bytes, overwrite=True, create_parents=True)
     
 
-def write_gummi_item_buy_and_sell_price() -> None:
+def write_gummi_item_buy_and_sell_price(version: APVersion = APVersion.AP_DEV) -> None:
     kh1_data_path = root_path().joinpath("Working")
     gumi_spec_file = get_gumi_spec_file(kh1_data_path)
     gummi_block_prices = get_gummi_block_prices()
