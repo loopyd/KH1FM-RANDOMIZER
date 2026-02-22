@@ -66,17 +66,22 @@ def write_mod(ap_zip_file_name: Path | None = None, kh1_data_path: Path | None =
         raise FileNotFoundError("Error: ap_costs.json not found in the ap zip file.")
     
     mp_cost_file = validate_json(json_path.joinpath("mp_costs.json"))
-    if mp_cost_file is None:
-        version = APVersion.AP_MAIN
-        print("Warning: mp_costs.json not found in the ap zip file. Using AP version 1.")
-    else:
-        version = APVersion.AP_DEV
     
+    if getattr(settings_file, "version", None) is not None:
+        if settings_file["version"] not in set(version.value for version in APVersion):
+            print(f"Warning: Unrecognized version in settings.json, defaulting to Version {APVersion.AP_MAIN.value}")
+            version = APVersion.AP_MAIN
+        else:
+            version = APVersion(settings_file["version"])
+    else:
+        print(f"Warning: No version found in settings.json, defaulting to Version {APVersion.AP_MAIN.value}")
+        version = APVersion.AP_MAIN
+        
     print(f"Item Location Map File: {item_location_map_file}")
     print(f"Keyblade Stats File: {keyblade_stats_file}")
     print(f"Settings File: {settings_file}")
     print(f"AP Costs File: {ap_cost_file}")
-    if version == APVersion.AP_DEV:
+    if version != APVersion.AP_MAIN:
         print(f"MP Costs File: {mp_cost_file}")
     print(f"AP Game Version: {version}")
     
